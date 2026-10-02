@@ -221,3 +221,40 @@ export function Gauge({ value, label }: { value: number; label: string }) {
     </div>
   );
 }
+
+/** Barras mês a mês de uma série (receitas ou despesas): previsto mais claro, realizado sólido, valor no topo. */
+export function MonthBars({ rows, color, label }: { rows: { label: string; total: number; paid: number; isCurrent?: boolean; isFuture?: boolean }[]; color: string; label: string }) {
+  const [ref, w] = useWidth<HTMLDivElement>();
+  const [active, setActive] = useState<number | null>(null);
+  const max = niceMax(Math.max(1, ...rows.map((r) => r.total)) * 1.12);
+  const iw = Math.max(0, w - PAD.l - PAD.r);
+  const ih = H - PAD.t - PAD.b;
+  const slot = rows.length ? iw / rows.length : 0;
+  const bw = Math.max(4, Math.min(30, slot * 0.6));
+  const y = (v: number) => PAD.t + ih - (v / max) * ih;
+  const step = labelStep(rows.length, w);
+  const showValues = slot >= 30;
+  const a = active !== null ? rows[active] : null;
+  return (
+    <div ref={ref} className="w-full">
+      {w > 0 && (
+        <svg width={w} height={H} role="img" aria-label={label}>
+          <Axis w={w} max={max} />
+          {rows.map((r, i) => {
+            const x = PAD.l + slot * i + (slot - bw) / 2;
+            return (
+              <g key={i} onMouseEnter={() => setActive(i)} onClick={() => setActive(i)} style={{ cursor: "pointer" }}>
+                <rect x={PAD.l + slot * i} y={PAD.t} width={slot} height={ih} fill={active === i ? "var(--hover-tint)" : "transparent"} rx="8" />
+                <rect x={x} y={y(r.total)} width={bw} height={Math.max(0, y(0) - y(r.total))} rx={Math.min(6, bw / 2)} fill={color} opacity="0.3" />
+                <rect x={x} y={y(r.paid)} width={bw} height={Math.max(0, y(0) - y(r.paid))} rx={Math.min(6, bw / 2)} fill={color} />
+                {showValues && r.total > 0 && <text x={x + bw / 2} y={y(r.total) - 4} textAnchor="middle" fontSize="9" style={{ fill: "var(--t3)" }}>{compact(r.total)}</text>}
+                {i % step === 0 && <text x={x + bw / 2} y={H - 8} textAnchor="middle" fontSize="10" style={{ fill: r.isCurrent ? "var(--accent)" : "var(--t4)", fontWeight: r.isCurrent ? 700 : 400 }}>{r.label}</text>}
+              </g>
+            );
+          })}
+        </svg>
+      )}
+      <div className="mono mt-1 min-h-[16px] text-[11px] text-t2">{a ? `${a.label}: ${brl(a.total)}${a.paid !== a.total ? ` (realizado ${brl(a.paid)})` : ""}` : <span className="text-t4">Toque numa barra para ver o valor</span>}</div>
+    </div>
+  );
+}

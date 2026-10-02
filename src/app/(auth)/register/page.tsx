@@ -1,14 +1,14 @@
 "use client";
 import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
-import { signIn } from "next-auth/react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { api } from "@/lib/client";
 import { ROLE_LABELS, type RoleKey } from "@/lib/roles";
 import { ErrorBox } from "@/components/ui";
 
 function RegisterForm() {
   const sp = useSearchParams();
+  const router = useRouter();
   const [mode, setMode] = useState<"create" | "join">(sp.get("modo") === "entrar" || sp.get("codigo") ? "join" : "create");
   const [f, setF] = useState({ name: "", email: "", password: "", inviteCode: (sp.get("codigo") ?? "").toUpperCase(), familyName: "" });
   const [role, setRole] = useState<RoleKey | "">("");
@@ -46,9 +46,9 @@ function RegisterForm() {
         method: "POST",
         body: { name: f.name, email: f.email, password: f.password, role, inviteCode: mode === "join" ? f.inviteCode : null, familyName: mode === "create" ? f.familyName || null : null },
       });
-      const res = await signIn("credentials", { email: f.email, password: f.password, redirect: false });
-      if (res?.error) throw new Error("Conta criada, mas não foi possível entrar. Tente fazer login.");
-      window.location.href = "/painel";
+      // Cadastro feito: volta para o login com o email já preenchido para o usuário entrar.
+      try { sessionStorage.setItem("ff_novo_email", f.email.trim().toLowerCase()); } catch { /* armazenamento indisponível */ }
+      router.replace("/login?cadastro=ok");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erro ao cadastrar");
       setLoading(false);
@@ -105,7 +105,7 @@ function RegisterForm() {
         </div>
       )}
 
-      <button className="btn-primary w-full" disabled={loading}>{loading ? "Criando..." : "Criar conta"}</button>
+      <button className="btn-primary w-full" disabled={loading}>{loading ? "Criando conta..." : "Criar conta"}</button>
       <p className="text-center text-[13px] text-t3">
         Já tem conta? <Link href="/login" className="font-semibold text-lime hover:text-lime-hover">Entrar</Link>
       </p>

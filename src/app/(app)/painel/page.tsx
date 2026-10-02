@@ -8,6 +8,7 @@ import { BalanceLine, FlowBars, Gauge, HBars, type FlowPoint } from "@/component
 import { MarketStrip } from "@/components/MarketStrip";
 import { ChartGrowth } from "@/components/Illustrations";
 import { Icon } from "@/components/Icon";
+import { HealthMessage, MonthlyComparison } from "@/components/DashboardExtras";
 import { ErrorBox, PageHeader, ScopeTabs, SectionTitle, Spinner } from "@/components/ui";
 
 type Dash = {
@@ -76,6 +77,9 @@ export default function PainelPage() {
   const { data, error, loading } = useApi<Dash>(`/api/dashboard?period=${period}&ref=${ref}&scope=${scope}`);
   const label = periodLabel(period, ref, data?.range);
   const isCurrent = period === "total" || shiftRef(period, ref, 0) === shiftRef(period, todayClient(), 0);
+  // O comparativo mês a mês termina no mês em análise (no ano: dezembro ou o mês atual; no total: o mês atual).
+  const nowMonth = todayClient().slice(0, 7);
+  const comparisonEnd = period === "total" ? nowMonth : period === "year" ? (ref.slice(0, 4) === nowMonth.slice(0, 4) ? nowMonth : `${ref.slice(0, 4)}-12`) : ref.slice(0, 7);
 
   return (
     <div>
@@ -108,6 +112,7 @@ export default function PainelPage() {
       {loading && !data && <Spinner className="my-16" />}
       {data && (
         <div className={`space-y-5 transition-opacity ${loading ? "opacity-60" : ""}`}>
+          <HealthMessage period={data.period} totals={data.totals} healthLabel={data.health.label} healthScore={data.health.score} hasData={data.health.hasData} />
           {data.overdue.count > 0 && (
             <Link href="/atrasos" className="well-danger card-link flex items-center justify-between gap-3">
               <span className="flex items-center gap-3 text-[13px] text-danger-light"><Icon name="alert" size={20} className="text-danger" />
@@ -122,10 +127,10 @@ export default function PainelPage() {
               <span className="text-[12px] font-semibold">Ver</span>
             </Link>
           )}
-          {data.reserveAtRisk !== "OK" && period !== "day" && (
+          {data.reserveAtRisk === "RESERVE" && period !== "day" && (
             <div className="well-gold flex items-center gap-3 text-[13px] text-gold">
               <Icon name="alert" size={20} />
-              {data.reserveAtRisk === "NEGATIVE" ? "A projeção do período está negativa: as despesas previstas superam os rendimentos." : `A projeção do período ficou abaixo da sua reserva de emergência (${brl(data.emergencyReserve)}).`}
+              {`A projeção do período ficou abaixo da sua reserva de emergência (${brl(data.emergencyReserve)}).`}
             </div>
           )}
 
@@ -159,6 +164,8 @@ export default function PainelPage() {
               ) : <div className="well py-8 text-center text-[13px] text-t3">Lance receitas e despesas para calcular sua pontuação.</div>}
             </div>
           </div>
+
+          <MonthlyComparison end={comparisonEnd} scope={scope} />
 
           <div className="card">
             <SectionTitle>Saldo acumulado e projeção</SectionTitle>
