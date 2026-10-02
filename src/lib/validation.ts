@@ -73,3 +73,13 @@ export const settingsSchema = z.object({
   name: z.string().trim().min(2).max(80).optional(),
   role: z.enum(FAMILY_ROLES).optional(),
 });
+
+export const savingsSchema = z.object({
+  kind: z.enum(["DEPOSIT", "WITHDRAWAL"]),
+  bank: z.string().trim().min(2, "Informe o banco").max(40).transform((v) => v.replace(/\s+/g, " ")),
+  amount: z.coerce.number().positive("O valor deve ser maior que zero").max(1_000_000_000),
+  date: day,
+  note: z.string().trim().max(120).optional().nullable().transform((v) => v || null),
+  scope: z.enum(["PERSONAL", "FAMILY"]).default("PERSONAL"),
+  confirmed: z.boolean().optional(), // obrigatório para resgates
+});

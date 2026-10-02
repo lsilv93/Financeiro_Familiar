@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { HttpError, handle, requireUser } from "@/lib/session";
+import { lookupInvite } from "@/lib/security";
 
 export const dynamic = "force-dynamic";
 
@@ -14,7 +15,7 @@ export async function POST(req: Request) {
   return handle(async () => {
     const user = await requireUser();
     const { inviteCode } = schema.parse(await req.json());
-    const target = await prisma.family.findUnique({ where: { inviteCode } });
+    const target = await lookupInvite(inviteCode, user.id);
     if (!target) throw new HttpError(400, "Código de convite inválido");
     if (target.id === user.familyId) throw new HttpError(400, "Você já faz parte desta família");
     const members = await prisma.user.count({ where: { familyId: user.familyId } });

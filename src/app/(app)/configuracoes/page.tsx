@@ -75,7 +75,10 @@ export default function ConfigPage() {
                 <button className="btn-secondary" onClick={() => { navigator.clipboard?.writeText(data.family.inviteCode); setMsg("Código copiado."); }}>Copiar</button>
               </div>
               <p className="mt-2 text-[11px] text-t4">Envie o código ou, mais fácil, convide direto pelo WhatsApp.</p>
-              <div className="mt-3"><InviteButton /></div>
+              <div className="mt-3 flex flex-wrap gap-2">
+                <InviteButton />
+                <button type="button" className="btn-secondary" onClick={() => { if (confirm("Gerar um novo código? O código e os links de convite antigos deixarão de funcionar.")) api("/api/family/rotate-code", { method: "POST" }).then(() => window.location.reload()).catch((e) => setErr(e.message)); }}>Gerar novo código</button>
+              </div>
             </div>
             <ul className="well rows text-[13px]">
               {data.family.members.map((m) => <li key={m.id} className="flex items-center justify-between gap-2 py-2.5 text-fg"><span className="min-w-0 truncate">{m.name} <span className="text-t3">· {m.email}</span></span>{m.role && <span className="badge badge-lime">{ROLE_LABELS[m.role]}</span>}</li>)}

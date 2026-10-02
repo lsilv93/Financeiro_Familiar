@@ -16,7 +16,11 @@ export default function LoginPage() {
     setError(null);
     const res = await signIn("credentials", { email, password, redirect: false });
     if (res?.error) {
-      setError("Email ou senha incorretos");
+      setError(
+        res.error === "LOCKED"
+          ? "Conta bloqueada após 3 tentativas incorretas. Use “Esqueci minha senha” para receber um link de recuperação por email."
+          : "Email ou senha incorretos. Após 3 tentativas a conta é bloqueada.",
+      );
       setLoading(false);
     } else {
       window.location.href = "/painel";
@@ -35,6 +39,7 @@ export default function LoginPage() {
         <label className="label" htmlFor="password">Senha</label>
         <input id="password" type="password" required autoComplete="current-password" className="input" value={password} onChange={(e) => setPassword(e.target.value)} />
       </div>
+      <div className="text-right"><Link href="/esqueci-senha" className="text-[12px] font-semibold text-lime hover:text-lime-hover">Esqueci minha senha</Link></div>
       <button className="btn-primary w-full" disabled={loading}>{loading ? "Entrando..." : "Entrar"}</button>
       <p className="text-center text-sm text-t3">
         Não tem conta? <Link href="/register" className="font-semibold text-lime hover:text-lime-hover">Cadastre-se</Link>

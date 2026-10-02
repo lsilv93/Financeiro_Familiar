@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, type ReactNode } from "react";
+import { Coin } from "./Illustrations";
 
 export function Spinner({ className = "" }: { className?: string }) {
   return <div className={`mx-auto h-7 w-7 animate-spin rounded-full border-2 border-lime border-t-transparent ${className}`} role="status" aria-label="Carregando" />;
@@ -22,7 +23,12 @@ export function ErrorBox({ message }: { message: string }) {
 }
 
 export function Empty({ children }: { children: ReactNode }) {
-  return <div className="well py-8 text-center text-[13px] text-t3">{children}</div>;
+  return (
+    <div className="well flex flex-col items-center gap-3 py-8 text-center text-[13px] text-t3">
+      <Coin size={30} />
+      {children}
+    </div>
+  );
 }
 
 export function SectionTitle({ children, right }: { children: ReactNode; right?: ReactNode }) {

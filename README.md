@@ -11,6 +11,10 @@ Sistema de controle financeiro **pessoal e familiar**, mobile-first, no sistema 
 | Autenticação | Cadastro/login seguro (senha com bcrypt, sessão JWT). Cada cadastro cria uma **família** com um código de convite; outros membros entram informando o código. |
 | Família e perfis | No cadastro, cada pessoa escolhe **Marido, Mulher ou Filho(a)** e **cria uma família** ou **entra com o código**. O botão **Convidar família** abre o WhatsApp com o link `/convite/CODIGO`; ao abrir, a pessoa escolhe entre entrar naquela família ou criar a sua. |
 | Isolamento | Cada usuário só acessa os próprios dados pessoais e os dados familiares da **sua** família. Todas as consultas e ações por ID filtram por usuário/família no servidor (acesso a dados de outra família retorna 404). |
+| Segurança de acesso | **3 senhas erradas bloqueiam a conta**; o desbloqueio é só pelo link de redefinição enviado ao e-mail (vale 1 h, uso único, invalida sessões antigas). Códigos de convite inválidos: após **3 tentativas** o IP/usuário fica bloqueado por 30 min; o código pode ser trocado em Configurações. |
+| Minha reserva | Poupança por banco: **guardar** e **resgatar** (com confirmação obrigatória), histórico, evolução e meta de reserva. |
+| Dashboard | Filtros **Dia / Semana / Mês / Ano / Total**, fluxo de caixa, saldo acumulado com projeção, saúde financeira, regra 50/30/20, uso dos cartões e cobertura da reserva. |
+| Notícias | Feeds RSS de veículos conhecidos (G1, InfoMoney, Agência Brasil, CNN Brasil, Exame, Folha) classificados em dólar, inflação, investimentos e Brasil, além de cotações (AwesomeAPI) e Selic/IPCA (Banco Central). |
 | Tema | Botão para alternar **tema escuro / claro** (preferência salva no navegador). |
 | Escopo | **Pessoal** (só quem lançou vê) ou **Familiar** (todos da família veem extrato, pendências, parcelas e resumos). Regra centralizada em `visibleWhere` (`src/lib/session.ts`). |
 | Receitas | Salário, PLR, 13º, Férias, Hora Extra, Freelance, Premiação, Empréstimos, Rendimento de Investimentos, Outros. |
@@ -132,6 +136,9 @@ npx prisma migrate dev --name descricao_da_mudanca
 git add prisma && git commit -m "db: descricao_da_mudanca" && git push
 ```
 O deploy na Vercel aplica a nova migração automaticamente.
+
+### 5) E-mail de recuperação de senha
+Em **Settings → Environment Variables** da Vercel, adicione **uma** das opções do `.env.example` (SMTP com senha de app do Gmail, ou Resend) e faça **Redeploy**. Sem isso, o botão "Esqueci minha senha" não consegue enviar o link.
 
 ### Problemas comuns
 - **`Can't reach database server`** → confira `sslmode=require` (Neon) e se usou a URL correta; no Supabase use `?pgbouncer=true` na `DATABASE_URL`.

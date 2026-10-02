@@ -67,3 +67,22 @@ export function cardDueDate(purchase: Date, dueDay: number, closingDay?: number 
   const sameMonth = dayInMonth(pm, dueDay);
   return sameMonth >= purchase ? sameMonth : dayInMonth(shiftMonth(pm, 1), dueDay);
 }
+
+export function addDays(d: Date, n: number): Date {
+  return new Date(d.getTime() + n * 86400000);
+}
+
+export function diffDays(a: Date, b: Date): number {
+  return Math.round((b.getTime() - a.getTime()) / 86400000);
+}
+
+/** Segunda-feira da semana que contém `d`. */
+export function startOfWeek(d: Date): Date {
+  return addDays(d, -((d.getUTCDay() + 6) % 7));
+}
+
+export type Period = "day" | "week" | "month" | "year" | "total";
+
+export function isPeriod(v: string | null): v is Period {
+  return v === "day" || v === "week" || v === "month" || v === "year" || v === "total";
+}

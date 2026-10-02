@@ -1,6 +1,6 @@
 import Link from "next/link";
-import { prisma } from "@/lib/prisma";
-import { getCurrentUser } from "@/lib/session";
+import { HttpError, getCurrentUser } from "@/lib/session";
+import { lookupInvite } from "@/lib/security";
 import { AuthShell } from "@/components/AuthShell";
 import { JoinLoggedIn } from "./JoinLoggedIn";
 
@@ -8,16 +8,23 @@ export const dynamic = "force-dynamic";
 
 export default async function ConvitePage({ params }: { params: Promise<{ code: string }> }) {
   const code = (await params).code.trim().toUpperCase();
-  const family = code.length >= 4 && code.length <= 20 ? await prisma.family.findUnique({ where: { inviteCode: code }, select: { id: true, name: true } }) : null;
   const user = await getCurrentUser();
+  let family: { id: string; name: string } | null = null;
+  let blockedMsg: string | null = null;
+  try {
+    family = await lookupInvite(code, user?.id);
+  } catch (e) {
+    if (e instanceof HttpError) blockedMsg = e.message;
+    else throw e;
+  }
 
   return (
     <AuthShell>
       <div className="card !p-7">
         {!family ? (
           <div className="space-y-5">
-            <h2 className="text-[18px] font-semibold text-fg">Convite inválido</h2>
-            <p className="text-[13px] text-t3">Este link de convite não é válido ou expirou. Peça um novo link para quem convidou você.</p>
+            <h2 className="text-[18px] font-semibold text-fg">{blockedMsg ? "Acesso bloqueado" : "Convite inválido"}</h2>
+            <p className="text-[13px] text-t3">{blockedMsg ?? "Este link de convite não é válido ou expirou. Peça um novo link para quem convidou você."}</p>
             <Link href="/register" className="btn-primary w-full">Criar uma conta</Link>
           </div>
         ) : user ? (

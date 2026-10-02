@@ -3,10 +3,11 @@ import { hash } from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { registerSchema } from "@/lib/validation";
 import { HttpError, handle } from "@/lib/session";
+import { lookupInvite } from "@/lib/security";
 
 export const dynamic = "force-dynamic";
 
-const newInviteCode = () => randomBytes(4).toString("hex").toUpperCase();
+const newInviteCode = () => randomBytes(5).toString("hex").toUpperCase();
 
 export async function POST(req: Request) {
   return handle(async () => {
@@ -15,7 +16,7 @@ export async function POST(req: Request) {
 
     let familyId: string;
     if (body.inviteCode) {
-      const fam = await prisma.family.findUnique({ where: { inviteCode: body.inviteCode } });
+      const fam = await lookupInvite(body.inviteCode);
       if (!fam) throw new HttpError(400, "Código de convite inválido");
       familyId = fam.id;
     } else {

@@ -13,19 +13,27 @@ function RegisterForm() {
   const [f, setF] = useState({ name: "", email: "", password: "", inviteCode: (sp.get("codigo") ?? "").toUpperCase(), familyName: "" });
   const [role, setRole] = useState<RoleKey | "">("");
   const [familyFound, setFamilyFound] = useState<string | null>(null);
+  const [codeMsg, setCodeMsg] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const set = (k: keyof typeof f) => (e: React.ChangeEvent<HTMLInputElement>) => setF({ ...f, [k]: k === "inviteCode" ? e.target.value.toUpperCase() : e.target.value });
 
-  // Mostra o nome da família quando o código é válido.
-  useEffect(() => {
+  // Verifica o código só ao sair do campo (ou quando veio pelo link), para não gastar tentativas digitando.
+  async function checkCode(code: string) {
     setFamilyFound(null);
-    if (mode !== "join" || f.inviteCode.length < 4) return;
-    const t = setTimeout(() => {
-      api<{ valid: boolean; familyName?: string }>(`/api/invite/${encodeURIComponent(f.inviteCode)}`).then((r) => setFamilyFound(r.valid ? r.familyName ?? "" : null)).catch(() => {});
-    }, 300);
-    return () => clearTimeout(t);
-  }, [mode, f.inviteCode]);
+    if (code.length < 4) return;
+    try {
+      const r = await api<{ valid: boolean; familyName?: string }>(`/api/invite/${encodeURIComponent(code)}`);
+      if (r.valid) setFamilyFound(r.familyName ?? "");
+      else setCodeMsg("Código não encontrado. Confira com quem convidou você.");
+    } catch (e) {
+      setCodeMsg(e instanceof Error ? e.message : "Erro ao verificar o código");
+    }
+  }
+  useEffect(() => {
+    if (mode === "join" && f.inviteCode) checkCode(f.inviteCode);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -90,9 +98,10 @@ function RegisterForm() {
       ) : (
         <div>
           <label className="label" htmlFor="invite">Código da família</label>
-          <input id="invite" className="input mono uppercase" placeholder="Ex.: A1B2C3D4" value={f.inviteCode} onChange={set("inviteCode")} />
+          <input id="invite" className="input mono uppercase" placeholder="Ex.: A1B2C3D4" value={f.inviteCode} onChange={(e) => { setCodeMsg(null); setFamilyFound(null); set("inviteCode")(e); }} onBlur={() => f.inviteCode && checkCode(f.inviteCode)} />
           {familyFound !== null && <p className="mt-2 text-[12px] font-semibold text-lime">Família encontrada: {familyFound}</p>}
-          {familyFound === null && f.inviteCode.length >= 8 && <p className="mt-2 text-[11px] text-t4">Verificando o código...</p>}
+          {codeMsg && <p className="mt-2 text-[12px] text-danger">{codeMsg}</p>}
+          <p className="mt-2 text-[11px] text-t4">Por segurança, após 3 códigos inválidos o acesso por convite é bloqueado por 30 minutos.</p>
         </div>
       )}
 

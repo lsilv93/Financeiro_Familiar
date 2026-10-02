@@ -173,3 +173,15 @@ html.light {
 @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
 @keyframes pulse { 0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(190, 249, 27, 0.5); } 50% { opacity: 0.6; box-shadow: 0 0 0 6px rgba(190, 249, 27, 0); } }
 @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+
+/* ===== Animações temáticas (moedas, cartão, cofrinho) ===== */
+.coin-spin { animation: coinSpin 3.2s linear infinite; transform-origin: 50% 50%; }
+.card-float { animation: floaty 4.5s ease-in-out infinite; filter: drop-shadow(10px 14px 18px rgba(0, 4, 8, 0.45)); }
+.coin-fall { position: absolute; top: -50px; opacity: 0; animation: coinFall linear infinite; }
+.coin-drop { animation: coinDrop 2.6s ease-in infinite; }
+.bar-grow { transform-origin: bottom; transform-box: fill-box; animation: barGrow 0.9s var(--ease) both; }
+@keyframes coinSpin { 0% { transform: rotateY(0); } 100% { transform: rotateY(360deg); } }
+@keyframes floaty { 0%, 100% { transform: translateY(0) rotate(-2deg); } 50% { transform: translateY(-10px) rotate(1deg); } }
+@keyframes coinFall { 0% { transform: translateY(0) rotateY(0); opacity: 0; } 10% { opacity: 0.55; } 90% { opacity: 0.35; } 100% { transform: translateY(110vh) rotateY(720deg); opacity: 0; } }
+@keyframes coinDrop { 0% { transform: translateY(-4px); opacity: 0; } 20% { opacity: 1; } 70% { transform: translateY(34px); opacity: 1; } 100% { transform: translateY(42px); opacity: 0; } }
+@keyframes barGrow { from { transform: scaleY(0); } to { transform: scaleY(1); } }

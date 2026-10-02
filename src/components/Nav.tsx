@@ -7,14 +7,17 @@ import { useApi } from "@/lib/client";
 import { Icon } from "./Icon";
 import { ThemeToggle } from "./ThemeToggle";
 import { InviteButton } from "./InviteButton";
+import { LogoMark } from "./Illustrations";
 
 const LINKS = [
   { href: "/painel", label: "Painel", icon: "panel" },
   { href: "/lancamentos", label: "Extrato", icon: "list" },
   { href: "/atrasos", label: "Contas a pagar", icon: "clock" },
+  { href: "/poupanca", label: "Minha reserva", icon: "coin" },
   { href: "/parcelas", label: "Parcelas", icon: "card" },
   { href: "/previsao", label: "Previsão", icon: "calendar" },
   { href: "/cartoes", label: "Cartões", icon: "bank" },
+  { href: "/noticias", label: "Notícias", icon: "news" },
   { href: "/configuracoes", label: "Configurações", icon: "gear" },
 ];
 
@@ -29,7 +32,7 @@ export function Sidebar({ userName }: { userName: string }) {
   return (
     <aside className="card fixed inset-y-4 left-4 hidden w-60 flex-col !p-4 md:flex" style={{ animation: "none" }}>
       <div className="mb-5 flex items-center gap-3 px-2 pt-1">
-        <div className="chip !h-10 !w-10 text-lime"><Icon name="bank" size={18} /></div>
+        <LogoMark size={40} />
         <div className="leading-tight">
           <div className="text-[14px] font-semibold">Financeiro</div>
           <div className="kicker !text-[9px]">Familiar</div>
@@ -37,7 +40,7 @@ export function Sidebar({ userName }: { userName: string }) {
       </div>
       <Link href="/lancamentos/novo" className="btn-primary mb-3"><Icon name="plus" size={16} />Novo lançamento</Link>
       <InviteButton className="btn-secondary mb-4" />
-      <nav className="flex-1 space-y-1">
+      <nav className="flex-1 space-y-0.5 overflow-y-auto">
         {LINKS.map((l) => {
           const active = path.startsWith(l.href);
           return (
@@ -74,7 +77,7 @@ export function BottomNav() {
       {more && (
         <div className="fixed inset-0 z-30 md:hidden" onClick={() => setMore(false)}>
           <div className="card absolute inset-x-4 bottom-24 !p-3" onClick={(e) => e.stopPropagation()}>
-            {LINKS.filter((l) => ["/parcelas", "/previsao", "/cartoes", "/configuracoes"].includes(l.href)).map((l) => (
+            {LINKS.filter((l) => ["/poupanca", "/parcelas", "/previsao", "/cartoes", "/noticias", "/configuracoes"].includes(l.href)).map((l) => (
               <Link key={l.href} href={l.href} onClick={() => setMore(false)} className="flex min-h-[48px] items-center gap-3 rounded-full px-4 text-[13px] font-semibold text-t2 hover:bg-[var(--hover-tint)] hover:text-lime">
                 <Icon name={l.icon} size={18} />{l.label}
               </Link>

@@ -101,59 +101,6 @@ export async function budgetCheck(
   return { level, month, projectedBefore: projected, projectedAfter: after, impact, emergencyReserve: reserve };
 }
 
-export async function dashboard(user: CurrentUser, month: string, filter: ScopeFilter) {
-  const { start, end } = monthRange(month);
-  const base = visibleWhere(user, filter);
-  const txs = await prisma.transaction.findMany({ where: { AND: [base, { dueDate: { gte: start, lt: end } }] } });
-
-  const inc = txs.filter((t) => t.type === "INCOME");
-  const exp = txs.filter((t) => t.type === "EXPENSE");
-  const received = sum(inc.filter((t) => t.status === "PAID"));
-  const spent = sum(exp.filter((t) => t.status === "PAID"));
-  const incomeTotal = sum(inc);
-  const expenseTotal = sum(exp);
-  const projected = round2(incomeTotal - expenseTotal);
-
-  const byCat = new Map<string, number>();
-  for (const t of exp) byCat.set(t.category, (byCat.get(t.category) ?? 0) + num(t.amount));
-  const categories = [...byCat.entries()]
-    .map(([key, total]) => ({
-      key,
-      label: EXPENSE_CATEGORIES[key]?.label ?? key,
-      color: EXPENSE_CATEGORIES[key]?.color ?? "#94a3b8",
-      total: round2(total),
-      percent: expenseTotal ? round2((total / expenseTotal) * 100) : 0,
-    }))
-    .sort((a, b) => b.total - a.total);
-  // Aportes não são "gasto de consumo": ficam fora do destaque de maior gasto.
-  const topCategory = categories.find((c) => c.key !== INVESTMENT_KEY) ?? null;
-
-  const t0 = today();
-  const soon = new Date(t0.getTime() + 7 * 86400000);
-  const pendingExp = { AND: [base, { type: "EXPENSE" as const, status: "PENDING" as const }] };
-  const [overdue, upcoming] = await Promise.all([
-    prisma.transaction.findMany({ where: { AND: [...pendingExp.AND, { dueDate: { lt: t0 } }] }, select: { amount: true } }),
-    prisma.transaction.findMany({ where: { AND: [...pendingExp.AND, { dueDate: { gte: t0, lte: soon } }] }, select: { amount: true } }),
-  ]);
-
-  const reserve = await reserveFor(user, filter);
-  const catSum = (key: string, status?: "PAID") => sum(exp.filter((t) => t.category === key && (!status || t.status === status)));
-
-  return {
-    month,
-    scope: filter,
-    totals: { received, spent, balance: round2(received - spent), projected, incomeTotal, expenseTotal, pendingExpenses: round2(expenseTotal - spent) },
-    invested: { paid: catSum(INVESTMENT_KEY, "PAID"), planned: catSum(INVESTMENT_KEY) },
-    tithes: { paid: catSum(TITHE_KEY, "PAID"), planned: catSum(TITHE_KEY) },
-    categories,
-    topCategory,
-    overdue: { count: overdue.length, total: sum(overdue) },
-    upcoming: { count: upcoming.length, total: sum(upcoming) },
-    emergencyReserve: reserve,
-    reserveAtRisk: projected < 0 ? "NEGATIVE" : reserve > 0 && projected < reserve ? "RESERVE" : "OK",
-  };
-}
-
 export function nextMonth(m: string) {
   return shiftMonth(m, 1);
 }

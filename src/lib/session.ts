@@ -17,6 +17,8 @@ export async function getCurrentUser(): Promise<CurrentUser | null> {
   if (!session?.user?.id) return null;
   const u = await prisma.user.findUnique({ where: { id: session.user.id } });
   if (!u) return null;
+  // Senha redefinida depois que esta sessão foi emitida -> sessão inválida.
+  if (u.passwordChangedAt && (session.user.pwd ?? 0) < u.passwordChangedAt.getTime()) return null;
   return { id: u.id, name: u.name, email: u.email, familyId: u.familyId, emergencyReserve: Number(u.emergencyReserve) };
 }
 
