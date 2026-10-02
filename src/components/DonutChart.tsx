@@ -12,7 +12,7 @@ export function DonutChart({ data, total }: { data: Slice[]; total: number }) {
     <div className="flex flex-col items-center gap-5 sm:flex-row">
       <div className="well grid shrink-0 place-items-center !rounded-full !p-3">
         <svg viewBox="0 0 140 140" className="h-44 w-44 -rotate-90" role="img" aria-label="Gastos por categoria">
-          <circle cx="70" cy="70" r={r} fill="none" strokeWidth="16" stroke="#0A1B29" />
+          <circle cx="70" cy="70" r={r} fill="none" strokeWidth="16" style={{ stroke: "var(--donut-track)" }} />
           {data.map((s) => {
             const len = total ? (s.total / total) * c : 0;
             const el = (
@@ -25,8 +25,8 @@ export function DonutChart({ data, total }: { data: Slice[]; total: number }) {
             return el;
           })}
           <g style={{ transform: "rotate(90deg)", transformOrigin: "70px 70px" }}>
-            <text x="70" y="66" textAnchor="middle" fill="#6F8496" fontSize="7" letterSpacing="1">TOTAL</text>
-            <text x="70" y="80" textAnchor="middle" fill="#fff" fontSize="10" fontWeight="600" fontFamily="ui-monospace, Menlo, monospace">{brl(total)}</text>
+            <text x="70" y="66" textAnchor="middle" style={{ fill: "var(--t4)" }} fontSize="7" letterSpacing="1">TOTAL</text>
+            <text x="70" y="80" textAnchor="middle" style={{ fill: "var(--fg)" }} fontSize="10" fontWeight="600" fontFamily="ui-monospace, Menlo, monospace">{brl(total)}</text>
           </g>
         </svg>
       </div>

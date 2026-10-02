@@ -5,6 +5,8 @@ import { signOut } from "next-auth/react";
 import { useState } from "react";
 import { useApi } from "@/lib/client";
 import { Icon } from "./Icon";
+import { ThemeToggle } from "./ThemeToggle";
+import { InviteButton } from "./InviteButton";
 
 const LINKS = [
   { href: "/painel", label: "Painel", icon: "panel" },
@@ -33,13 +35,14 @@ export function Sidebar({ userName }: { userName: string }) {
           <div className="kicker !text-[9px]">Familiar</div>
         </div>
       </div>
-      <Link href="/lancamentos/novo" className="btn-primary mb-4"><Icon name="plus" size={16} />Novo lançamento</Link>
+      <Link href="/lancamentos/novo" className="btn-primary mb-3"><Icon name="plus" size={16} />Novo lançamento</Link>
+      <InviteButton className="btn-secondary mb-4" />
       <nav className="flex-1 space-y-1">
         {LINKS.map((l) => {
           const active = path.startsWith(l.href);
           return (
             <Link key={l.href} href={l.href}
-              className={`flex min-h-[44px] items-center justify-between rounded-full px-4 text-[13px] font-semibold transition ${active ? "bg-[linear-gradient(150deg,#06121D,#0C1E2C)] text-lime shadow-[inset_4px_4px_9px_rgba(0,4,8,.66),inset_-3px_-3px_8px_rgba(52,90,120,.2)]" : "text-t3 hover:bg-[rgba(190,249,27,.09)] hover:text-lime"}`}>
+              className={`flex min-h-[44px] items-center justify-between rounded-full px-4 text-[13px] font-semibold transition ${active ? "nav-active" : "text-t3 hover:bg-[var(--hover-tint)] hover:text-lime"}`}>
               <span className="flex items-center gap-3"><Icon name={l.icon} size={18} />{l.label}</span>
               {l.href === "/atrasos" && overdue > 0 && <span className="badge badge-danger !px-2">{overdue}</span>}
             </Link>
@@ -48,6 +51,7 @@ export function Sidebar({ userName }: { userName: string }) {
       </nav>
       <div className="groove mt-3 pt-3">
         <div className="mb-1 truncate px-4 text-[12px] text-t3">{userName}</div>
+        <ThemeToggle className="w-full !justify-start" />
         <button onClick={() => signOut({ callbackUrl: "/login" })} className="btn-ghost w-full !justify-start"><Icon name="out" size={16} />Sair</button>
       </div>
     </aside>
@@ -71,11 +75,13 @@ export function BottomNav() {
         <div className="fixed inset-0 z-30 md:hidden" onClick={() => setMore(false)}>
           <div className="card absolute inset-x-4 bottom-24 !p-3" onClick={(e) => e.stopPropagation()}>
             {LINKS.filter((l) => ["/parcelas", "/previsao", "/cartoes", "/configuracoes"].includes(l.href)).map((l) => (
-              <Link key={l.href} href={l.href} onClick={() => setMore(false)} className="flex min-h-[48px] items-center gap-3 rounded-full px-4 text-[13px] font-semibold text-t2 hover:bg-[rgba(190,249,27,.09)] hover:text-lime">
+              <Link key={l.href} href={l.href} onClick={() => setMore(false)} className="flex min-h-[48px] items-center gap-3 rounded-full px-4 text-[13px] font-semibold text-t2 hover:bg-[var(--hover-tint)] hover:text-lime">
                 <Icon name={l.icon} size={18} />{l.label}
               </Link>
             ))}
+            <InviteButton className="btn-ghost w-full !justify-start !px-4" />
             <div className="groove my-2" />
+            <ThemeToggle className="w-full !justify-start !px-4" />
             <button onClick={() => signOut({ callbackUrl: "/login" })} className="btn-ghost w-full !justify-start !px-4"><Icon name="out" size={16} />Sair</button>
           </div>
         </div>
@@ -83,7 +89,7 @@ export function BottomNav() {
       <nav className="card fixed inset-x-3 bottom-3 z-40 flex items-center !rounded-[28px] !p-2 pb-[max(8px,env(safe-area-inset-bottom))] md:hidden" style={{ animation: "none" }}>
         {item("/painel", "Painel", "panel")}
         {item("/lancamentos", "Extrato", "list")}
-        <Link href="/lancamentos/novo" aria-label="Novo lançamento" className="-mt-7 grid h-14 w-14 shrink-0 place-items-center rounded-full bg-[linear-gradient(145deg,#D0FF45,#A9E113)] text-ink shadow-[8px_8px_17px_rgba(0,4,8,.62),-6px_-6px_15px_rgba(52,90,120,.26)] active:scale-[.97]">
+        <Link href="/lancamentos/novo" aria-label="Novo lançamento" className="fab -mt-7">
           <Icon name="plus" size={26} />
         </Link>
         {item("/atrasos", "Contas", "clock", overdue)}

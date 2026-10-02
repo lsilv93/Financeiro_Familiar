@@ -72,7 +72,7 @@ export default function CartoesPage() {
             <div key={c.id} className={`card ${c.active ? "" : "opacity-60"}`}>
               <div className="flex items-start justify-between">
                 <div>
-                  <div className="flex flex-wrap items-center gap-2 text-[15px] font-semibold text-white">{c.name}<ScopeBadge scope={c.scope} /></div>
+                  <div className="flex flex-wrap items-center gap-2 text-[15px] font-semibold text-fg">{c.name}<ScopeBadge scope={c.scope} /></div>
                   <div className="mono mt-1 text-[11px] text-t3">Vence dia {c.dueDay}{c.closingDay ? ` · fecha dia ${c.closingDay}` : ""}{c.active ? "" : " · arquivado"}</div>
                 </div>
                 {c.active ? <button className="btn-ghost btn-xs hover:!text-danger" onClick={() => remove(c)}>Remover</button> : <button className="btn-ghost btn-xs" onClick={() => reactivate(c)}>Reativar</button>}

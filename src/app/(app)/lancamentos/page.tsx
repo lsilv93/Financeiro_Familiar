@@ -79,7 +79,7 @@ export default function ExtratoPage() {
         <div className="stagger mb-5 grid grid-cols-1 gap-3 min-[520px]:grid-cols-3">
           <div className="card-sm"><div className="kicker mb-2">Receitas</div><div className="well !rounded-[16px] !px-3 !py-2"><div className="mono text-[16px] font-semibold text-lime">{brl(data.totals.income)}</div></div></div>
           <div className="card-sm"><div className="kicker mb-2">Despesas</div><div className="well !rounded-[16px] !px-3 !py-2"><div className="mono text-[16px] font-semibold text-danger">{brl(data.totals.expense)}</div></div></div>
-          <div className="card-sm"><div className="kicker mb-2">Saldo</div><div className="well !rounded-[16px] !px-3 !py-2"><div className="mono text-[16px] font-semibold text-white">{brl(data.totals.balance)}</div></div></div>
+          <div className="card-sm"><div className="kicker mb-2">Saldo</div><div className="well !rounded-[16px] !px-3 !py-2"><div className="mono text-[16px] font-semibold text-fg">{brl(data.totals.balance)}</div></div></div>
         </div>
       )}
 

@@ -25,7 +25,7 @@ export default function LoginPage() {
 
   return (
     <form onSubmit={submit} className="space-y-5">
-      <h2 className="text-[18px] font-semibold text-white">Entrar</h2>
+      <h2 className="text-[18px] font-semibold text-fg">Entrar</h2>
       {error && <ErrorBox message={error} />}
       <div>
         <label className="label" htmlFor="email">Email</label>

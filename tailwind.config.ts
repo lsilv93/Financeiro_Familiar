@@ -5,14 +5,14 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        navy: "#0A1B29",
-        lime: { DEFAULT: "#BEF91B", hover: "#D4FF5E" },
-        gold: { DEFAULT: "#E8C547", label: "#C8A94A" },
-        danger: { DEFAULT: "#FF6B6B", light: "#FFC9C9" },
+        fg: "var(--fg)",
+        lime: { DEFAULT: "var(--accent)", hover: "var(--accent-hover)" },
+        gold: { DEFAULT: "var(--gold)", label: "var(--gold-label)" },
+        danger: { DEFAULT: "var(--danger)", light: "var(--danger-light)" },
         ink: "#000E19",
-        t2: "#A8BAC7",
-        t3: "#8DA0B3",
-        t4: "#6F8496",
+        t2: "var(--t2)",
+        t3: "var(--t3)",
+        t4: "var(--t4)",
       },
       fontFamily: {
         sans: ["'Helvetica Neue'", "Helvetica", "Arial", "sans-serif"],

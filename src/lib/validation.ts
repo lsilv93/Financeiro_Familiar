@@ -4,10 +4,13 @@ import { EXPENSE_CATEGORIES, isValidCategory } from "./categories";
 const day = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Data inválida (use AAAA-MM-DD)");
 const optionalText = z.string().trim().max(80).optional().nullable().transform((v) => v || null);
 
+export const FAMILY_ROLES = ["HUSBAND", "WIFE", "CHILD"] as const;
+
 export const registerSchema = z.object({
   name: z.string().trim().min(2, "Informe seu nome").max(80),
   email: z.string().trim().toLowerCase().email("Email inválido"),
   password: z.string().min(8, "A senha deve ter ao menos 8 caracteres").max(100),
+  role: z.enum(FAMILY_ROLES, { errorMap: () => ({ message: "Escolha se você é marido, mulher ou filho(a)" }) }),
   inviteCode: z.string().trim().toUpperCase().max(20).optional().nullable(),
   familyName: z.string().trim().max(80).optional().nullable(),
 });
@@ -68,4 +71,5 @@ export const settingsSchema = z.object({
   familyEmergencyReserve: z.coerce.number().min(0).max(1_000_000_000).optional(),
   familyName: z.string().trim().min(1).max(80).optional(),
   name: z.string().trim().min(2).max(80).optional(),
+  role: z.enum(FAMILY_ROLES).optional(),
 });

@@ -218,7 +218,7 @@ export function TransactionForm() {
         {alert && (
           <div className="space-y-4">
             <div className="chip !h-12 !w-12 !rounded-[18px] text-gold"><Icon name="alert" size={24} /></div>
-            <h2 className="text-[18px] font-semibold text-white">Alerta de orçamento</h2>
+            <h2 className="text-[18px] font-semibold text-fg">Alerta de orçamento</h2>
             <p className="text-[14px] leading-relaxed text-t2">
               {alert.level === "NEGATIVE"
                 ? "Atenção: Este gasto comprometerá seu orçamento mensal"
@@ -228,7 +228,7 @@ export function TransactionForm() {
             <dl className="well-gold space-y-1.5 text-[13px] text-t2 [&_dt]:text-gold-label">
               <div className="flex justify-between"><dt>Saldo projetado do mês</dt><dd className="mono">{brl(alert.projectedBefore)}</dd></div>
               <div className="flex justify-between"><dt>Valor deste gasto{installments > 1 ? " (1ª parcela)" : ""}</dt><dd className="mono">− {brl(alert.impact)}</dd></div>
-              <div className="flex justify-between font-semibold text-white"><dt>Saldo após o gasto</dt><dd className={`mono ${alert.projectedAfter < 0 ? "text-danger" : "text-white"}`}>{brl(alert.projectedAfter)}</dd></div>
+              <div className="flex justify-between font-semibold text-fg"><dt>Saldo após o gasto</dt><dd className={`mono ${alert.projectedAfter < 0 ? "text-danger" : "text-fg"}`}>{brl(alert.projectedAfter)}</dd></div>
               {alert.emergencyReserve > 0 && <div className="flex justify-between text-t3"><dt>Reserva a preservar</dt><dd className="mono">{brl(alert.emergencyReserve)}</dd></div>}
             </dl>
             <div className="flex gap-2">

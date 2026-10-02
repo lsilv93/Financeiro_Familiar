@@ -40,12 +40,12 @@ export default function ParcelasPage() {
             <div key={p.id} className="card">
               <div className="flex flex-wrap items-start justify-between gap-2">
                 <div>
-                  <div className="flex items-center gap-2"><h2 className="text-[15px] font-semibold text-white">{p.description}</h2><ScopeBadge scope={p.scope} /></div>
+                  <div className="flex items-center gap-2"><h2 className="text-[15px] font-semibold text-fg">{p.description}</h2><ScopeBadge scope={p.scope} /></div>
                   <div className="mt-0.5 text-[12px] text-t3">{categoryLabel("EXPENSE", p.category)}{p.cardName ? ` · ${p.cardName}` : ""}</div>
                 </div>
                 <div className="text-right">
                   <div className="kicker">Saldo restante</div>
-                  <div className="mono mt-1 text-[20px] font-semibold text-white">{brl(p.remainingAmount)}</div>
+                  <div className="mono mt-1 text-[20px] font-semibold text-fg">{brl(p.remainingAmount)}</div>
                 </div>
               </div>
 
@@ -77,7 +77,7 @@ export default function ParcelasPage() {
                     <li key={i.id} className="flex items-center justify-between py-2.5 text-t2">
                       <span>{i.number}/{p.installmentsCount} · {fmtDate(i.dueDate)}</span>
                       <span className="flex items-center gap-3">
-                        <span className="mono text-white">{brl(i.amount)}</span>
+                        <span className="mono text-fg">{brl(i.amount)}</span>
                         <button disabled={busy === i.id} onClick={() => pay(i.id, i.status !== "PAID")}
                           className={`btn btn-xs ${i.status === "PAID" ? "btn-ghost !text-lime" : i.overdue ? "btn-danger" : "btn-secondary"}`}>
                           {i.status === "PAID" ? "Paga" : i.overdue ? "Pagar (atrasada)" : "Pagar"}

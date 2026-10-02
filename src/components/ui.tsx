@@ -9,7 +9,7 @@ export function PageHeader({ title, subtitle, actions }: { title: string; subtit
   return (
     <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
       <div>
-        <h1 className="text-[26px] leading-tight text-white">{title}</h1>
+        <h1 className="text-[26px] leading-tight text-fg">{title}</h1>
         {subtitle && <p className="mt-1 text-[13px] text-t3">{subtitle}</p>}
       </div>
       {actions && <div className="flex items-center gap-2">{actions}</div>}
@@ -43,7 +43,7 @@ export function Modal({ open, onClose, title, children }: { open: boolean; onClo
   }, [open, onClose]);
   if (!open) return null;
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-[rgba(2,8,14,.72)] p-4 sm:items-center" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-[rgba(10,27,41,.5)] p-4 sm:items-center" onClick={onClose}>
       <div role="dialog" aria-modal="true" aria-label={title} className="card w-full max-w-md" onClick={(e) => e.stopPropagation()}>
         {children}
       </div>
@@ -70,7 +70,7 @@ export function MonthPicker({ month, onChange, label }: { month: string; onChang
   return (
     <div className="seg items-center">
       <button aria-label="Mês anterior" className="seg-btn !flex-none !px-4" onClick={() => onChange(shift(month, -1))}>‹</button>
-      <span className="min-w-[9rem] text-center text-[13px] font-semibold text-white">{label}</span>
+      <span className="min-w-[9rem] text-center text-[13px] font-semibold text-fg">{label}</span>
       <button aria-label="Próximo mês" className="seg-btn !flex-none !px-4" onClick={() => onChange(shift(month, 1))}>›</button>
     </div>
   );

@@ -20,7 +20,7 @@ type Dash = {
 };
 
 function Kpi({ label, value, tone, hint, size = "lg" }: { label: string; value: number; tone?: "good" | "bad" | "plain" | "gold"; hint?: string; size?: "lg" | "md" }) {
-  const color = tone === "good" ? "text-lime" : tone === "bad" ? "text-danger" : tone === "gold" ? "text-gold" : "text-white";
+  const color = tone === "good" ? "text-lime" : tone === "bad" ? "text-danger" : tone === "gold" ? "text-gold" : "text-fg";
   return (
     <div className="card !p-[18px]">
       <div className="kicker mb-3">{label}</div>
@@ -89,7 +89,7 @@ export default function PainelPage() {
               <div className="chip !h-12 !w-12 !rounded-[18px]"><span className="h-4 w-4 rounded-full" style={{ background: data.topCategory.color }} /></div>
               <div className="min-w-0">
                 <div className="kicker">Maior gasto do mês</div>
-                <div className="mt-1 truncate text-[16px] font-semibold text-white">{data.topCategory.label}</div>
+                <div className="mt-1 truncate text-[16px] font-semibold text-fg">{data.topCategory.label}</div>
                 <div className="mono text-[12px] text-t3">{brl(data.topCategory.total)} · {data.topCategory.percent.toFixed(0)}% das despesas</div>
               </div>
             </div>

@@ -9,6 +9,9 @@ Sistema de controle financeiro **pessoal e familiar**, mobile-first, no sistema 
 | Área | O que faz |
 |---|---|
 | Autenticação | Cadastro/login seguro (senha com bcrypt, sessão JWT). Cada cadastro cria uma **família** com um código de convite; outros membros entram informando o código. |
+| Família e perfis | No cadastro, cada pessoa escolhe **Marido, Mulher ou Filho(a)** e **cria uma família** ou **entra com o código**. O botão **Convidar família** abre o WhatsApp com o link `/convite/CODIGO`; ao abrir, a pessoa escolhe entre entrar naquela família ou criar a sua. |
+| Isolamento | Cada usuário só acessa os próprios dados pessoais e os dados familiares da **sua** família. Todas as consultas e ações por ID filtram por usuário/família no servidor (acesso a dados de outra família retorna 404). |
+| Tema | Botão para alternar **tema escuro / claro** (preferência salva no navegador). |
 | Escopo | **Pessoal** (só quem lançou vê) ou **Familiar** (todos da família veem extrato, pendências, parcelas e resumos). Regra centralizada em `visibleWhere` (`src/lib/session.ts`). |
 | Receitas | Salário, PLR, 13º, Férias, Hora Extra, Freelance, Premiação, Empréstimos, Rendimento de Investimentos, Outros. |
 | Despesas | Pix, Dinheiro, Débito e Crédito. No crédito é **obrigatório** escolher o cartão. Categorias/subcategorias pré-definidas em `src/lib/categories.ts`. |

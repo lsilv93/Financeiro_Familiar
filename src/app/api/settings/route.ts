@@ -8,10 +8,10 @@ export const dynamic = "force-dynamic";
 async function snapshot(userId: string) {
   const u = await prisma.user.findUniqueOrThrow({
     where: { id: userId },
-    include: { family: { include: { members: { select: { id: true, name: true, email: true } } } } },
+    include: { family: { include: { members: { select: { id: true, name: true, email: true, role: true } } } } },
   });
   return {
-    user: { id: u.id, name: u.name, email: u.email, emergencyReserve: num(u.emergencyReserve) },
+    user: { id: u.id, name: u.name, email: u.email, role: u.role, emergencyReserve: num(u.emergencyReserve) },
     family: {
       id: u.family.id,
       name: u.family.name,
@@ -31,7 +31,7 @@ export async function PUT(req: Request) {
     const user = await requireUser();
     const b = settingsSchema.parse(await req.json());
     await prisma.$transaction([
-      prisma.user.update({ where: { id: user.id }, data: { name: b.name, emergencyReserve: b.emergencyReserve } }),
+      prisma.user.update({ where: { id: user.id }, data: { name: b.name, emergencyReserve: b.emergencyReserve, role: b.role } }),
       prisma.family.update({ where: { id: user.familyId }, data: { name: b.familyName, emergencyReserve: b.familyEmergencyReserve } }),
     ]);
     return snapshot(user.id);

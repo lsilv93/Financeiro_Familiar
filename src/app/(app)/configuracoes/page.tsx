@@ -2,10 +2,12 @@
 import { useEffect, useState } from "react";
 import { api, brl, useApi } from "@/lib/client";
 import { ErrorBox, PageHeader, SectionTitle, Spinner } from "@/components/ui";
+import { ROLE_LABELS, type RoleKey } from "@/lib/roles";
+import { InviteButton } from "@/components/InviteButton";
 
 type S = {
-  user: { name: string; email: string; emergencyReserve: number };
-  family: { name: string; inviteCode: string; emergencyReserve: number; members: { id: string; name: string; email: string }[] };
+  user: { name: string; email: string; role: RoleKey | null; emergencyReserve: number };
+  family: { name: string; inviteCode: string; emergencyReserve: number; members: { id: string; name: string; email: string; role: RoleKey | null }[] };
 };
 
 export default function ConfigPage() {
@@ -13,12 +15,13 @@ export default function ConfigPage() {
   const [reserve, setReserve] = useState("");
   const [famReserve, setFamReserve] = useState("");
   const [name, setName] = useState("");
+  const [role, setRole] = useState<RoleKey | "">("");
   const [code, setCode] = useState("");
   const [msg, setMsg] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
 
   useEffect(() => {
-    if (data) { setReserve(String(data.user.emergencyReserve)); setFamReserve(String(data.family.emergencyReserve)); setName(data.user.name); }
+    if (data) { setReserve(String(data.user.emergencyReserve)); setFamReserve(String(data.family.emergencyReserve)); setName(data.user.name); setRole(data.user.role ?? ""); }
   }, [data]);
 
   const toNum = (s: string) => Number(s.replace(",", ".")) || 0;
@@ -35,11 +38,19 @@ export default function ConfigPage() {
       {loading && !data && <Spinner className="my-16" />}
       {data && (
         <div className="stagger space-y-5">
-          <form className="card space-y-5" onSubmit={(e) => { e.preventDefault(); run(() => api("/api/settings", { method: "PUT", body: { name, emergencyReserve: toNum(reserve), familyEmergencyReserve: toNum(famReserve) } }), "Configurações salvas."); }}>
+          <form className="card space-y-5" onSubmit={(e) => { e.preventDefault(); run(() => api("/api/settings", { method: "PUT", body: { name, role: role || undefined, emergencyReserve: toNum(reserve), familyEmergencyReserve: toNum(famReserve) } }), "Configurações salvas."); }}>
             <SectionTitle>Perfil e reserva de emergência</SectionTitle>
             <div>
               <label className="label" htmlFor="n">Nome</label>
               <input id="n" className="input" value={name} onChange={(e) => setName(e.target.value)} minLength={2} required />
+            </div>
+            <div>
+              <span className="label">Quem é você na família?</span>
+              <div className="seg w-full" role="radiogroup">
+                {(Object.keys(ROLE_LABELS) as RoleKey[]).map((r) => (
+                  <button type="button" key={r} role="radio" aria-checked={role === r} className={`seg-btn ${role === r ? "on" : ""}`} onClick={() => setRole(r)}>{ROLE_LABELS[r]}</button>
+                ))}
+              </div>
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
@@ -63,10 +74,11 @@ export default function ConfigPage() {
                 <code className="well mono !rounded-[16px] !px-4 !py-2 text-[18px] font-semibold tracking-[0.2em] text-lime">{data.family.inviteCode}</code>
                 <button className="btn-secondary" onClick={() => { navigator.clipboard?.writeText(data.family.inviteCode); setMsg("Código copiado."); }}>Copiar</button>
               </div>
-              <p className="mt-2 text-[11px] text-t4">Envie este código para quem deve entrar na sua família (informado no cadastro).</p>
+              <p className="mt-2 text-[11px] text-t4">Envie o código ou, mais fácil, convide direto pelo WhatsApp.</p>
+              <div className="mt-3"><InviteButton /></div>
             </div>
             <ul className="well rows text-[13px]">
-              {data.family.members.map((m) => <li key={m.id} className="py-2.5 text-white">{m.name} <span className="text-t3">· {m.email}</span></li>)}
+              {data.family.members.map((m) => <li key={m.id} className="flex items-center justify-between gap-2 py-2.5 text-fg"><span className="min-w-0 truncate">{m.name} <span className="text-t3">· {m.email}</span></span>{m.role && <span className="badge badge-lime">{ROLE_LABELS[m.role]}</span>}</li>)}
             </ul>
           </div>
 

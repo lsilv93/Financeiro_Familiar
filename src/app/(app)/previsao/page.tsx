@@ -54,9 +54,9 @@ export default function PrevisaoPage() {
           <div className="stagger grid grid-cols-1 gap-3 min-[520px]:grid-cols-3">
             <div className="card-sm"><div className="kicker mb-2">Receitas previstas</div><div className="well !rounded-[16px] !px-3 !py-2"><div className="mono text-[16px] font-semibold text-lime">{brl(d.totals.income)}</div></div></div>
             <div className="card-sm"><div className="kicker mb-2">Despesas previstas</div><div className="well !rounded-[16px] !px-3 !py-2"><div className="mono text-[16px] font-semibold text-danger">{brl(d.totals.expense)}</div></div></div>
-            <div className="card-sm"><div className="kicker mb-2">Saldo previsto</div><div className="well !rounded-[16px] !px-3 !py-2"><div className={`mono text-[16px] font-semibold ${d.totals.balance < 0 ? "text-danger" : "text-white"}`}>{brl(d.totals.balance)}</div></div></div>
+            <div className="card-sm"><div className="kicker mb-2">Saldo previsto</div><div className="well !rounded-[16px] !px-3 !py-2"><div className={`mono text-[16px] font-semibold ${d.totals.balance < 0 ? "text-danger" : "text-fg"}`}>{brl(d.totals.balance)}</div></div></div>
           </div>
-          {d.installmentsTotal > 0 && <p className="text-[13px] text-t3">Parcelas já comprometidas neste mês: <b className="mono text-white">{brl(d.installmentsTotal)}</b></p>}
+          {d.installmentsTotal > 0 && <p className="text-[13px] text-t3">Parcelas já comprometidas neste mês: <b className="mono text-fg">{brl(d.installmentsTotal)}</b></p>}
 
           {d.pendingRules.length > 0 && (
             <div className="card">
@@ -67,9 +67,9 @@ export default function PrevisaoPage() {
               {msg && <p className="mb-2 text-[13px] text-lime">{msg}</p>}
               <ul className="well rows text-[13px]">
                 {d.pendingRules.map((r) => (
-                  <li key={r.id} className="flex items-center justify-between py-2.5 text-white">
+                  <li key={r.id} className="flex items-center justify-between py-2.5 text-fg">
                     <span>{r.description} <span className="text-[11px] text-t3">· dia {r.dayOfMonth} · {categoryLabel(r.type, r.category)}</span></span>
-                    <span className={`mono ${r.type === "INCOME" ? "text-lime" : "text-white"}`}>{r.type === "INCOME" ? "+" : "−"} {brl(r.amount)}</span>
+                    <span className={`mono ${r.type === "INCOME" ? "text-lime" : "text-fg"}`}>{r.type === "INCOME" ? "+" : "−"} {brl(r.amount)}</span>
                   </li>
                 ))}
               </ul>
@@ -92,7 +92,7 @@ export default function PrevisaoPage() {
             {rules.data.map((r) => (
               <li key={r.id} className={`flex items-center justify-between gap-2 py-3 text-[13px] ${r.active ? "" : "opacity-50"}`}>
                 <div className="min-w-0">
-                  <div className="flex items-center gap-2"><span className="truncate font-semibold text-white">{r.description}</span><ScopeBadge scope={r.scope} /></div>
+                  <div className="flex items-center gap-2"><span className="truncate font-semibold text-fg">{r.description}</span><ScopeBadge scope={r.scope} /></div>
                   <div className="mono text-[11px] text-t3">Todo dia {r.dayOfMonth} · {brl(r.amount)}{r.cardName ? ` · ${r.cardName}` : ""}</div>
                 </div>
                 <div className="flex shrink-0 gap-1">

@@ -8,6 +8,12 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
+enum FamilyRole {
+  HUSBAND
+  WIFE
+  CHILD
+}
+
 enum Scope {
   PERSONAL // visível apenas para quem lançou
   FAMILY // visível para todos os membros da família
@@ -50,6 +56,7 @@ model User {
   email            String   @unique
   passwordHash     String
   emergencyReserve Decimal  @default(0) @db.Decimal(12, 2)
+  role             FamilyRole? // marido, mulher ou filho
   createdAt        DateTime @default(now())
 
   familyId String

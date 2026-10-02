@@ -43,7 +43,7 @@ export function TransactionList({ items, onChanged }: { items: Tx[]; onChanged: 
               <div className={`chip ${income ? "text-lime" : "text-danger"}`}><Icon name={income ? "up" : "down"} size={18} /></div>
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                  <span className="truncate text-[14px] font-semibold text-white">{t.description}</span>
+                  <span className="truncate text-[14px] font-semibold text-fg">{t.description}</span>
                   {t.installmentNumber && <span className="badge badge-lime mono">{t.installmentNumber}/{t.installmentsCount}</span>}
                   {t.recurringMonth && <span className="badge badge-gold">Fixo</span>}
                   <ScopeBadge scope={t.scope} />
@@ -58,7 +58,7 @@ export function TransactionList({ items, onChanged }: { items: Tx[]; onChanged: 
                 </div>
               </div>
               <div className="shrink-0 text-right">
-                <div className={`mono text-[14px] font-semibold ${income ? "text-lime" : "text-white"}`}>{income ? "+" : "−"} {brl(t.amount)}</div>
+                <div className={`mono text-[14px] font-semibold ${income ? "text-lime" : "text-fg"}`}>{income ? "+" : "−"} {brl(t.amount)}</div>
                 <div className="mt-1.5 flex items-center justify-end gap-1">
                   <button disabled={busy === t.id} onClick={() => toggle(t)} className={`btn-xs ${t.status === "PAID" ? "btn-secondary" : "btn-primary"} btn`}>
                     {t.status === "PAID" ? "Desfazer" : income ? "Receber" : "Pagar"}

@@ -26,7 +26,7 @@ export async function POST(req: Request) {
     }
 
     const user = await prisma.user.create({
-      data: { name: body.name, email: body.email, passwordHash: await hash(body.password, 12), familyId },
+      data: { name: body.name, email: body.email, passwordHash: await hash(body.password, 12), familyId, role: body.role },
     });
     return { id: user.id };
   });
