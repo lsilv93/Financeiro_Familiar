@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { api, brl, useApi } from "@/lib/client";
-import { ErrorBox, PageHeader, Spinner } from "@/components/ui";
+import { ErrorBox, PageHeader, SectionTitle, Spinner } from "@/components/ui";
 
 type S = {
   user: { name: string; email: string; emergencyReserve: number };
@@ -31,12 +31,12 @@ export default function ConfigPage() {
     <div className="mx-auto max-w-xl">
       <PageHeader title="Configurações" />
       {(error || err) && <ErrorBox message={(error || err)!} />}
-      {msg && <div className="mb-3 rounded-xl bg-emerald-50 p-3 text-sm text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300">{msg}</div>}
-      {loading && !data && <Spinner className="my-10" />}
+      {msg && <div className="well mb-4 text-[13px] text-lime">{msg}</div>}
+      {loading && !data && <Spinner className="my-16" />}
       {data && (
-        <div className="space-y-4">
-          <form className="card space-y-3" onSubmit={(e) => { e.preventDefault(); run(() => api("/api/settings", { method: "PUT", body: { name, emergencyReserve: toNum(reserve), familyEmergencyReserve: toNum(famReserve) } }), "Configurações salvas."); }}>
-            <h2 className="font-semibold">Perfil e reserva de emergência</h2>
+        <div className="stagger space-y-5">
+          <form className="card space-y-5" onSubmit={(e) => { e.preventDefault(); run(() => api("/api/settings", { method: "PUT", body: { name, emergencyReserve: toNum(reserve), familyEmergencyReserve: toNum(famReserve) } }), "Configurações salvas."); }}>
+            <SectionTitle>Perfil e reserva de emergência</SectionTitle>
             <div>
               <label className="label" htmlFor="n">Nome</label>
               <input id="n" className="input" value={name} onChange={(e) => setName(e.target.value)} minLength={2} required />
@@ -44,41 +44,41 @@ export default function ConfigPage() {
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="label" htmlFor="r1">Reserva pessoal (R$)</label>
-                <input id="r1" className="input" inputMode="decimal" value={reserve} onChange={(e) => setReserve(e.target.value)} />
+                <input id="r1" className="input mono" inputMode="decimal" value={reserve} onChange={(e) => setReserve(e.target.value)} />
               </div>
               <div>
                 <label className="label" htmlFor="r2">Reserva familiar (R$)</label>
-                <input id="r2" className="input" inputMode="decimal" value={famReserve} onChange={(e) => setFamReserve(e.target.value)} />
+                <input id="r2" className="input mono" inputMode="decimal" value={famReserve} onChange={(e) => setFamReserve(e.target.value)} />
               </div>
             </div>
-            <p className="text-xs text-slate-500">Valor mínimo que deve sobrar no saldo projetado do mês. Se um novo gasto fizer o saldo ficar abaixo disso (ou negativo), você será avisado antes de confirmar.</p>
+            <p className="text-[11px] leading-relaxed text-t4">Valor mínimo que deve sobrar no saldo projetado do mês. Se um novo gasto fizer o saldo ficar abaixo disso (ou negativo), você será avisado antes de confirmar.</p>
             <button className="btn-primary">Salvar</button>
           </form>
 
-          <div className="card space-y-3">
-            <h2 className="font-semibold">Família: {data.family.name}</h2>
+          <div className="card space-y-5">
+            <SectionTitle>Família: {data.family.name}</SectionTitle>
             <div>
               <div className="label">Código de convite</div>
               <div className="flex items-center gap-2">
-                <code className="rounded-lg bg-slate-100 px-3 py-2 text-lg font-bold tracking-widest dark:bg-slate-800">{data.family.inviteCode}</code>
+                <code className="well mono !rounded-[16px] !px-4 !py-2 text-[18px] font-semibold tracking-[0.2em] text-lime">{data.family.inviteCode}</code>
                 <button className="btn-secondary" onClick={() => { navigator.clipboard?.writeText(data.family.inviteCode); setMsg("Código copiado."); }}>Copiar</button>
               </div>
-              <p className="mt-1 text-xs text-slate-500">Envie este código para quem deve entrar na sua família (informado no cadastro).</p>
+              <p className="mt-2 text-[11px] text-t4">Envie este código para quem deve entrar na sua família (informado no cadastro).</p>
             </div>
-            <ul className="divide-y divide-slate-100 text-sm dark:divide-slate-800">
-              {data.family.members.map((m) => <li key={m.id} className="py-2">{m.name} <span className="text-slate-500">· {m.email}</span></li>)}
+            <ul className="well rows text-[13px]">
+              {data.family.members.map((m) => <li key={m.id} className="py-2.5 text-white">{m.name} <span className="text-t3">· {m.email}</span></li>)}
             </ul>
           </div>
 
           {data.family.members.length === 1 && (
-            <form className="card space-y-3" onSubmit={(e) => { e.preventDefault(); run(() => api("/api/family/join", { method: "POST", body: { inviteCode: code } }), "Você entrou na nova família."); }}>
-              <h2 className="font-semibold">Entrar em outra família</h2>
+            <form className="card space-y-5" onSubmit={(e) => { e.preventDefault(); run(() => api("/api/family/join", { method: "POST", body: { inviteCode: code } }), "Você entrou na nova família."); }}>
+              <SectionTitle>Entrar em outra família</SectionTitle>
               <input className="input uppercase" placeholder="Código de convite" value={code} onChange={(e) => setCode(e.target.value)} required />
-              <p className="text-xs text-slate-500">Seus lançamentos, cartões e recorrências “familiares” serão migrados para a nova família.</p>
+              <p className="text-[11px] text-t4">Seus lançamentos, cartões e recorrências “familiares” serão migrados para a nova família.</p>
               <button className="btn-secondary">Entrar</button>
             </form>
           )}
-          <p className="text-center text-xs text-slate-400">Reserva atual: {brl(data.user.emergencyReserve)} pessoal · {brl(data.family.emergencyReserve)} familiar</p>
+          <p className="mono text-center text-[11px] text-t4">Reserva atual: {brl(data.user.emergencyReserve)} pessoal · {brl(data.family.emergencyReserve)} familiar</p>
         </div>
       )}
     </div>

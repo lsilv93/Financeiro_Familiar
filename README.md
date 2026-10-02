@@ -1,6 +1,6 @@
 # 💰 Financeiro Familiar
 
-Sistema de controle financeiro **pessoal e familiar**, mobile-first, com modo escuro.
+Sistema de controle financeiro **pessoal e familiar**, mobile-first, no sistema visual **MB Soft UI** (neomorfismo navy com acento verde-lima).
 
 **Stack:** Next.js 15 (App Router) · TypeScript · Tailwind CSS · Prisma ORM · PostgreSQL · NextAuth (Auth.js v4, login por email/senha) · Zod.
 

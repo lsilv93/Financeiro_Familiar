@@ -1,15 +1,22 @@
 import type { Config } from "tailwindcss";
 
 const config: Config = {
-  darkMode: "class",
   content: ["./src/**/*.{ts,tsx}"],
   theme: {
     extend: {
       colors: {
-        brand: {
-          50: "#ecfdf5", 100: "#d1fae5", 200: "#a7f3d0", 300: "#6ee7b7", 400: "#34d399",
-          500: "#10b981", 600: "#059669", 700: "#047857", 800: "#065f46", 900: "#064e3b",
-        },
+        navy: "#0A1B29",
+        lime: { DEFAULT: "#BEF91B", hover: "#D4FF5E" },
+        gold: { DEFAULT: "#E8C547", label: "#C8A94A" },
+        danger: { DEFAULT: "#FF6B6B", light: "#FFC9C9" },
+        ink: "#000E19",
+        t2: "#A8BAC7",
+        t3: "#8DA0B3",
+        t4: "#6F8496",
+      },
+      fontFamily: {
+        sans: ["'Helvetica Neue'", "Helvetica", "Arial", "sans-serif"],
+        mono: ["ui-monospace", "Menlo", "monospace"],
       },
     },
   },

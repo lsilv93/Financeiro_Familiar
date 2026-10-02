@@ -24,8 +24,8 @@ export default function LoginPage() {
   }
 
   return (
-    <form onSubmit={submit} className="space-y-4">
-      <h2 className="text-lg font-semibold">Entrar</h2>
+    <form onSubmit={submit} className="space-y-5">
+      <h2 className="text-[18px] font-semibold text-white">Entrar</h2>
       {error && <ErrorBox message={error} />}
       <div>
         <label className="label" htmlFor="email">Email</label>
@@ -36,8 +36,8 @@ export default function LoginPage() {
         <input id="password" type="password" required autoComplete="current-password" className="input" value={password} onChange={(e) => setPassword(e.target.value)} />
       </div>
       <button className="btn-primary w-full" disabled={loading}>{loading ? "Entrando..." : "Entrar"}</button>
-      <p className="text-center text-sm text-slate-500">
-        Não tem conta? <Link href="/register" className="font-semibold text-brand-600">Cadastre-se</Link>
+      <p className="text-center text-sm text-t3">
+        Não tem conta? <Link href="/register" className="font-semibold text-lime hover:text-lime-hover">Cadastre-se</Link>
       </p>
     </form>
   );

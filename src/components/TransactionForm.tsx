@@ -6,12 +6,12 @@ import { api, brl, todayStr, useApi } from "@/lib/client";
 import { EXPENSE_CATEGORIES, INCOME_CATEGORIES, PAYMENT_METHODS } from "@/lib/categories";
 import type { Card } from "@/lib/types";
 import { ErrorBox, Modal } from "./ui";
+import { Icon } from "./Icon";
 
 type Check = { level: "OK" | "RESERVE" | "NEGATIVE"; projectedBefore: number; projectedAfter: number; impact: number; emergencyReserve: number };
 type Method = keyof typeof PAYMENT_METHODS;
 
-const seg = (active: boolean, tone = "brand") =>
-  `flex-1 rounded-lg px-3 py-2 text-sm font-semibold transition ${active ? (tone === "red" ? "bg-rose-600 text-white" : "bg-brand-600 text-white") : "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300"}`;
+const seg = (active: boolean, tone = "brand") => `seg-btn ${active ? (tone === "red" ? "on-danger" : "on") : ""}`;
 
 export function TransactionForm() {
   const router = useRouter();
@@ -98,21 +98,21 @@ export function TransactionForm() {
 
   return (
     <>
-      <form onSubmit={submit} className="card space-y-4">
+      <form onSubmit={submit} className="card space-y-6 !p-6">
         {error && <ErrorBox message={error} />}
 
-        <div className="flex gap-2 rounded-xl bg-slate-100 p-1 dark:bg-slate-800">
+        <div className="seg w-full">
           <button type="button" className={seg(isExpense, "red")} onClick={() => setType("EXPENSE")}>Despesa</button>
           <button type="button" className={seg(!isExpense)} onClick={() => setType("INCOME")}>Receita</button>
         </div>
 
         <div>
           <span className="label">Visibilidade</span>
-          <div className="flex gap-2">
-            <button type="button" className={seg(scope === "PERSONAL")} onClick={() => setScope("PERSONAL")}>🔒 Pessoal</button>
-            <button type="button" className={seg(scope === "FAMILY")} onClick={() => setScope("FAMILY")}>👨‍👩‍👧 Familiar</button>
+          <div className="seg w-full">
+            <button type="button" className={seg(scope === "PERSONAL")} onClick={() => setScope("PERSONAL")}>Pessoal</button>
+            <button type="button" className={seg(scope === "FAMILY")} onClick={() => setScope("FAMILY")}>Familiar</button>
           </div>
-          <p className="mt-1 text-xs text-slate-500">{scope === "PERSONAL" ? "Só você enxerga este lançamento." : "Todos os membros da sua família enxergam este lançamento."}</p>
+          <p className="mt-2 text-[11px] text-t4">{scope === "PERSONAL" ? "Só você enxerga este lançamento." : "Todos os membros da sua família enxergam este lançamento."}</p>
         </div>
 
         <div>
@@ -123,11 +123,11 @@ export function TransactionForm() {
         <div className="grid grid-cols-2 gap-3">
           <div>
             <label className="label" htmlFor="amount">{installments > 1 ? "Valor total (R$)" : "Valor (R$)"}</label>
-            <input id="amount" className="input" inputMode="decimal" required placeholder="0,00" value={amount} onChange={(e) => setAmount(e.target.value)} />
+            <input id="amount" className="input mono" inputMode="decimal" required placeholder="0,00" value={amount} onChange={(e) => setAmount(e.target.value)} />
           </div>
           <div>
             <label className="label" htmlFor="date">{isCredit ? "Data da compra" : isExpense ? "Data" : "Data do recebimento"}</label>
-            <input id="date" type="date" className="input" required value={date} onChange={(e) => setDate(e.target.value)} />
+            <input id="date" type="date" className="input mono" required value={date} onChange={(e) => setDate(e.target.value)} />
           </div>
         </div>
 
@@ -153,7 +153,7 @@ export function TransactionForm() {
           <>
             <div>
               <span className="label">Forma de pagamento</span>
-              <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+              <div className="seg grid w-full grid-cols-2 !rounded-[26px] sm:grid-cols-4 sm:!rounded-full">
                 {(Object.keys(PAYMENT_METHODS) as Method[]).map((m) => (
                   <button type="button" key={m} className={seg(method === m)} onClick={() => setMethod(m)}>{PAYMENT_METHODS[m]}</button>
                 ))}
@@ -162,30 +162,30 @@ export function TransactionForm() {
 
             {isCredit && (
               <div>
-                <label className="label" htmlFor="card">Cartão utilizado <span className="text-red-500">*</span></label>
+                <label className="label" htmlFor="card">Cartão utilizado <span className="text-danger">*</span></label>
                 {activeCards.length === 0 ? (
-                  <p className="rounded-xl bg-amber-50 p-3 text-sm text-amber-800 dark:bg-amber-950 dark:text-amber-200">
-                    Você ainda não tem cartões. <Link className="font-semibold underline" href="/cartoes">Cadastre um cartão</Link> para continuar.
+                  <p className="well-gold text-[13px] text-gold">
+                    Você ainda não tem cartões. <Link className="font-semibold underline hover:text-lime" href="/cartoes">Cadastre um cartão</Link> para continuar.
                   </p>
                 ) : (
                   <select id="card" className="input" required value={cardId} onChange={(e) => setCardId(e.target.value)}>
                     {activeCards.map((c) => <option key={c.id} value={c.id}>{c.name} · vence dia {c.dueDay}{c.scope === "FAMILY" ? " (familiar)" : ""}</option>)}
                   </select>
                 )}
-                <p className="mt-1 text-xs text-slate-500">O vencimento é calculado automaticamente pela fatura do cartão.</p>
+                <p className="mt-2 text-[11px] text-t4">O vencimento é calculado automaticamente pela fatura do cartão.</p>
               </div>
             )}
 
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="label" htmlFor="inst">Parcelas</label>
-                <input id="inst" type="number" min={1} max={120} className="input" value={installments} onChange={(e) => setInstallments(Math.max(1, Math.min(120, Number(e.target.value) || 1)))} />
-                {installments > 1 && value > 0 && <p className="mt-1 text-xs text-slate-500">{installments}x de ≈ {brl(value / installments)}</p>}
+                <input id="inst" type="number" min={1} max={120} className="input mono" value={installments} onChange={(e) => setInstallments(Math.max(1, Math.min(120, Number(e.target.value) || 1)))} />
+                {installments > 1 && value > 0 && <p className="mt-2 text-[11px] text-t4">{installments}x de ≈ {brl(value / installments)}</p>}
               </div>
               {!isCredit && (
                 <div>
-                  <label className="label" htmlFor="due">Vencimento <span className="text-slate-400">(opcional)</span></label>
-                  <input id="due" type="date" className="input" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
+                  <label className="label" htmlFor="due">Vencimento <span className="text-t4 normal-case tracking-normal">(opcional)</span></label>
+                  <input id="due" type="date" className="input mono" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
                 </div>
               )}
             </div>
@@ -194,21 +194,21 @@ export function TransactionForm() {
 
         <div>
           <span className="label">Situação</span>
-          <div className="flex gap-2">
+          <div className="seg w-full">
             <button type="button" className={seg(status === "PAID")} onClick={() => setStatus("PAID")}>{isExpense ? "Já paguei" : "Já recebi"}</button>
             <button type="button" className={seg(status === "PENDING")} onClick={() => setStatus("PENDING")}>{isExpense ? "A pagar" : "A receber"}</button>
           </div>
-          {installments > 1 && <p className="mt-1 text-xs text-slate-500">A situação vale para a 1ª parcela; as demais ficam pendentes até você confirmar cada pagamento.</p>}
+          {installments > 1 && <p className="mt-2 text-[11px] text-t4">A situação vale para a 1ª parcela; as demais ficam pendentes até você confirmar cada pagamento.</p>}
         </div>
 
         {installments === 1 && (
-          <label className="flex items-center gap-2 text-sm">
-            <input type="checkbox" checked={recurring} onChange={(e) => setRecurring(e.target.checked)} className="h-4 w-4 rounded accent-brand-600" />
+          <label className="flex items-center gap-3 text-[13px] text-t2">
+            <input type="checkbox" checked={recurring} onChange={(e) => setRecurring(e.target.checked)} className="check" />
             Repetir todo mês ({isExpense ? "gasto fixo" : "receita fixa"}) — alimenta a previsão do próximo mês
           </label>
         )}
 
-        <div className="flex gap-2 pt-2">
+        <div className="flex gap-3 pt-2">
           <Link href="/lancamentos" className="btn-secondary flex-1">Cancelar</Link>
           <button className="btn-primary flex-1" disabled={saving}>{saving ? "Salvando..." : "Salvar lançamento"}</button>
         </div>
@@ -217,19 +217,19 @@ export function TransactionForm() {
       <Modal open={!!alert} onClose={() => setAlert(null)} title="Alerta de orçamento">
         {alert && (
           <div className="space-y-4">
-            <div className="text-4xl" aria-hidden>⚠️</div>
-            <h2 className="text-lg font-bold">Alerta de orçamento</h2>
-            <p>
+            <div className="chip !h-12 !w-12 !rounded-[18px] text-gold"><Icon name="alert" size={24} /></div>
+            <h2 className="text-[18px] font-semibold text-white">Alerta de orçamento</h2>
+            <p className="text-[14px] leading-relaxed text-t2">
               {alert.level === "NEGATIVE"
                 ? "Atenção: Este gasto comprometerá seu orçamento mensal"
                 : "Atenção: Este gasto comprometerá sua reserva de emergência"}
               . Deseja confirmar mesmo assim?
             </p>
-            <dl className="space-y-1 rounded-xl bg-slate-100 p-3 text-sm dark:bg-slate-800">
-              <div className="flex justify-between"><dt>Saldo projetado do mês</dt><dd className="tabular-nums">{brl(alert.projectedBefore)}</dd></div>
-              <div className="flex justify-between"><dt>Valor deste gasto{installments > 1 ? " (1ª parcela)" : ""}</dt><dd className="tabular-nums">− {brl(alert.impact)}</dd></div>
-              <div className="flex justify-between font-semibold"><dt>Saldo após o gasto</dt><dd className={`tabular-nums ${alert.projectedAfter < 0 ? "text-red-600" : ""}`}>{brl(alert.projectedAfter)}</dd></div>
-              {alert.emergencyReserve > 0 && <div className="flex justify-between text-slate-500"><dt>Reserva a preservar</dt><dd className="tabular-nums">{brl(alert.emergencyReserve)}</dd></div>}
+            <dl className="well-gold space-y-1.5 text-[13px] text-t2 [&_dt]:text-gold-label">
+              <div className="flex justify-between"><dt>Saldo projetado do mês</dt><dd className="mono">{brl(alert.projectedBefore)}</dd></div>
+              <div className="flex justify-between"><dt>Valor deste gasto{installments > 1 ? " (1ª parcela)" : ""}</dt><dd className="mono">− {brl(alert.impact)}</dd></div>
+              <div className="flex justify-between font-semibold text-white"><dt>Saldo após o gasto</dt><dd className={`mono ${alert.projectedAfter < 0 ? "text-danger" : "text-white"}`}>{brl(alert.projectedAfter)}</dd></div>
+              {alert.emergencyReserve > 0 && <div className="flex justify-between text-t3"><dt>Reserva a preservar</dt><dd className="mono">{brl(alert.emergencyReserve)}</dd></div>}
             </dl>
             <div className="flex gap-2">
               <button className="btn-secondary flex-1" onClick={() => setAlert(null)}>Voltar</button>

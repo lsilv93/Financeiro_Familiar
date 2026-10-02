@@ -2,15 +2,15 @@
 import { useEffect, type ReactNode } from "react";
 
 export function Spinner({ className = "" }: { className?: string }) {
-  return <div className={`mx-auto h-6 w-6 animate-spin rounded-full border-2 border-brand-600 border-t-transparent ${className}`} role="status" aria-label="Carregando" />;
+  return <div className={`mx-auto h-7 w-7 animate-spin rounded-full border-2 border-lime border-t-transparent ${className}`} role="status" aria-label="Carregando" />;
 }
 
 export function PageHeader({ title, subtitle, actions }: { title: string; subtitle?: string; actions?: ReactNode }) {
   return (
-    <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
+    <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
       <div>
-        <h1 className="text-2xl font-bold">{title}</h1>
-        {subtitle && <p className="text-sm text-slate-500 dark:text-slate-400">{subtitle}</p>}
+        <h1 className="text-[26px] leading-tight text-white">{title}</h1>
+        {subtitle && <p className="mt-1 text-[13px] text-t3">{subtitle}</p>}
       </div>
       {actions && <div className="flex items-center gap-2">{actions}</div>}
     </div>
@@ -18,11 +18,20 @@ export function PageHeader({ title, subtitle, actions }: { title: string; subtit
 }
 
 export function ErrorBox({ message }: { message: string }) {
-  return <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700 dark:border-red-900 dark:bg-red-950 dark:text-red-300" role="alert">{message}</div>;
+  return <div className="well-danger mb-4 text-[13px] text-danger-light" role="alert">{message}</div>;
 }
 
 export function Empty({ children }: { children: ReactNode }) {
-  return <div className="rounded-2xl border border-dashed border-slate-300 p-8 text-center text-sm text-slate-500 dark:border-slate-700 dark:text-slate-400">{children}</div>;
+  return <div className="well py-8 text-center text-[13px] text-t3">{children}</div>;
+}
+
+export function SectionTitle({ children, right }: { children: ReactNode; right?: ReactNode }) {
+  return (
+    <div className="mb-3 flex items-center justify-between gap-2">
+      <h2 className="text-[11px] font-semibold uppercase tracking-[0.12em] text-t3">{children}</h2>
+      {right}
+    </div>
+  );
 }
 
 export function Modal({ open, onClose, title, children }: { open: boolean; onClose: () => void; title: string; children: ReactNode }) {
@@ -34,8 +43,8 @@ export function Modal({ open, onClose, title, children }: { open: boolean; onClo
   }, [open, onClose]);
   if (!open) return null;
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 p-4 sm:items-center" onClick={onClose}>
-      <div role="dialog" aria-modal="true" aria-label={title} className="w-full max-w-md rounded-2xl bg-white p-5 shadow-xl dark:bg-slate-900" onClick={(e) => e.stopPropagation()}>
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-[rgba(2,8,14,.72)] p-4 sm:items-center" onClick={onClose}>
+      <div role="dialog" aria-modal="true" aria-label={title} className="card w-full max-w-md" onClick={(e) => e.stopPropagation()}>
         {children}
       </div>
     </div>
@@ -43,22 +52,15 @@ export function Modal({ open, onClose, title, children }: { open: boolean; onClo
 }
 
 export function ScopeBadge({ scope }: { scope: "PERSONAL" | "FAMILY" }) {
-  return scope === "FAMILY" ? (
-    <span className="badge bg-violet-100 text-violet-700 dark:bg-violet-900/40 dark:text-violet-300">Familiar</span>
-  ) : (
-    <span className="badge bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300">Pessoal</span>
-  );
+  return scope === "FAMILY" ? <span className="badge badge-gold">Familiar</span> : <span className="badge">Pessoal</span>;
 }
 
 export function ScopeTabs({ value, onChange }: { value: string; onChange: (v: string) => void }) {
   const opts = [["ALL", "Tudo"], ["PERSONAL", "Pessoal"], ["FAMILY", "Familiar"]];
   return (
-    <div className="inline-flex rounded-xl bg-slate-200 p-1 text-sm dark:bg-slate-800" role="tablist">
+    <div className="seg" role="tablist">
       {opts.map(([v, l]) => (
-        <button key={v} role="tab" aria-selected={value === v} onClick={() => onChange(v)}
-          className={`rounded-lg px-3 py-1.5 font-medium transition ${value === v ? "bg-white shadow dark:bg-slate-700" : "text-slate-600 dark:text-slate-400"}`}>
-          {l}
-        </button>
+        <button key={v} role="tab" aria-selected={value === v} onClick={() => onChange(v)} className="seg-btn">{l}</button>
       ))}
     </div>
   );
@@ -66,10 +68,10 @@ export function ScopeTabs({ value, onChange }: { value: string; onChange: (v: st
 
 export function MonthPicker({ month, onChange, label }: { month: string; onChange: (m: string) => void; label: string }) {
   return (
-    <div className="inline-flex items-center gap-1 rounded-xl border border-slate-300 bg-white px-1 dark:border-slate-700 dark:bg-slate-900">
-      <button aria-label="Mês anterior" className="btn-ghost" onClick={() => onChange(shift(month, -1))}>‹</button>
-      <span className="min-w-[8.5rem] text-center text-sm font-semibold">{label}</span>
-      <button aria-label="Próximo mês" className="btn-ghost" onClick={() => onChange(shift(month, 1))}>›</button>
+    <div className="seg items-center">
+      <button aria-label="Mês anterior" className="seg-btn !flex-none !px-4" onClick={() => onChange(shift(month, -1))}>‹</button>
+      <span className="min-w-[9rem] text-center text-[13px] font-semibold text-white">{label}</span>
+      <button aria-label="Próximo mês" className="seg-btn !flex-none !px-4" onClick={() => onChange(shift(month, 1))}>›</button>
     </div>
   );
 }

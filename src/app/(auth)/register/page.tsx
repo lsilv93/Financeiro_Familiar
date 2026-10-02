@@ -27,8 +27,8 @@ export default function RegisterPage() {
   }
 
   return (
-    <form onSubmit={submit} className="space-y-4">
-      <h2 className="text-lg font-semibold">Criar conta</h2>
+    <form onSubmit={submit} className="space-y-5">
+      <h2 className="text-[18px] font-semibold text-white">Criar conta</h2>
       {error && <ErrorBox message={error} />}
       <div>
         <label className="label" htmlFor="name">Nome</label>
@@ -43,19 +43,19 @@ export default function RegisterPage() {
         <input id="password" type="password" required minLength={8} autoComplete="new-password" className="input" value={f.password} onChange={set("password")} />
       </div>
       <div>
-        <label className="label" htmlFor="invite">Código de convite da família <span className="text-slate-400">(opcional)</span></label>
+        <label className="label" htmlFor="invite">Código de convite da família <span className="text-t4">(opcional)</span></label>
         <input id="invite" className="input uppercase" placeholder="Ex.: A1B2C3D4" value={f.inviteCode} onChange={set("inviteCode")} />
-        <p className="mt-1 text-xs text-slate-500">Se alguém da sua família já usa o app, peça o código em Configurações. Sem código, criamos uma nova família para você.</p>
+        <p className="mt-2 text-[11px] text-t3">Se alguém da sua família já usa o app, peça o código em Configurações. Sem código, criamos uma nova família para você.</p>
       </div>
       {!f.inviteCode && (
         <div>
-          <label className="label" htmlFor="family">Nome da família <span className="text-slate-400">(opcional)</span></label>
+          <label className="label" htmlFor="family">Nome da família <span className="text-t4">(opcional)</span></label>
           <input id="family" className="input" value={f.familyName} onChange={set("familyName")} />
         </div>
       )}
       <button className="btn-primary w-full" disabled={loading}>{loading ? "Criando..." : "Criar conta"}</button>
-      <p className="text-center text-sm text-slate-500">
-        Já tem conta? <Link href="/login" className="font-semibold text-brand-600">Entrar</Link>
+      <p className="text-center text-sm text-t3">
+        Já tem conta? <Link href="/login" className="font-semibold text-lime hover:text-lime-hover">Entrar</Link>
       </p>
     </form>
   );

@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { api, brl, useApi } from "@/lib/client";
 import type { Card } from "@/lib/types";
-import { Empty, ErrorBox, PageHeader, ScopeBadge, Spinner } from "@/components/ui";
+import { Empty, ErrorBox, PageHeader, ScopeBadge, SectionTitle, Spinner } from "@/components/ui";
 
 export default function CartoesPage() {
   const { data, error, loading, reload } = useApi<Card[]>("/api/cards");
@@ -32,8 +32,8 @@ export default function CartoesPage() {
   return (
     <div>
       <PageHeader title="Cartões de crédito" subtitle="Limite e dia de vencimento de cada cartão" />
-      <form onSubmit={add} className="card mb-4 space-y-3">
-        <h2 className="font-semibold">Novo cartão</h2>
+      <form onSubmit={add} className="card mb-6 space-y-5">
+        <SectionTitle>Novo cartão</SectionTitle>
         {err && <ErrorBox message={err} />}
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           <div className="col-span-2">
@@ -42,15 +42,15 @@ export default function CartoesPage() {
           </div>
           <div>
             <label className="label" htmlFor="climit">Limite (R$)</label>
-            <input id="climit" className="input" inputMode="decimal" required value={f.limit} onChange={(e) => setF({ ...f, limit: e.target.value })} />
+            <input id="climit" className="input mono" inputMode="decimal" required value={f.limit} onChange={(e) => setF({ ...f, limit: e.target.value })} />
           </div>
           <div>
             <label className="label" htmlFor="cdue">Dia de vencimento</label>
-            <input id="cdue" type="number" min={1} max={31} className="input" required value={f.dueDay} onChange={(e) => setF({ ...f, dueDay: e.target.value })} />
+            <input id="cdue" type="number" min={1} max={31} className="input mono" required value={f.dueDay} onChange={(e) => setF({ ...f, dueDay: e.target.value })} />
           </div>
           <div>
-            <label className="label" htmlFor="cclose">Fechamento <span className="text-slate-400">(opc.)</span></label>
-            <input id="cclose" type="number" min={1} max={31} className="input" value={f.closingDay} onChange={(e) => setF({ ...f, closingDay: e.target.value })} />
+            <label className="label" htmlFor="cclose">Fechamento <span className="text-t4 normal-case tracking-normal">(opc.)</span></label>
+            <input id="cclose" type="number" min={1} max={31} className="input mono" value={f.closingDay} onChange={(e) => setF({ ...f, closingDay: e.target.value })} />
           </div>
           <div className="col-span-2">
             <label className="label" htmlFor="cscope">Visibilidade</label>
@@ -63,24 +63,24 @@ export default function CartoesPage() {
       </form>
 
       {error && <ErrorBox message={error} />}
-      {loading && !data && <Spinner className="my-10" />}
+      {loading && !data && <Spinner className="my-16" />}
       {data && data.length === 0 && <Empty>Nenhum cartão cadastrado.</Empty>}
-      <div className="grid gap-3 sm:grid-cols-2">
+      <div className="stagger grid gap-5 sm:grid-cols-2">
         {data?.map((c) => {
           const pct = c.limit ? Math.min(100, Math.round((c.used / c.limit) * 100)) : 0;
           return (
             <div key={c.id} className={`card ${c.active ? "" : "opacity-60"}`}>
               <div className="flex items-start justify-between">
                 <div>
-                  <div className="flex items-center gap-2 font-semibold">💳 {c.name}<ScopeBadge scope={c.scope} /></div>
-                  <div className="text-xs text-slate-500">Vence dia {c.dueDay}{c.closingDay ? ` · fecha dia ${c.closingDay}` : ""}{c.active ? "" : " · arquivado"}</div>
+                  <div className="flex flex-wrap items-center gap-2 text-[15px] font-semibold text-white">{c.name}<ScopeBadge scope={c.scope} /></div>
+                  <div className="mono mt-1 text-[11px] text-t3">Vence dia {c.dueDay}{c.closingDay ? ` · fecha dia ${c.closingDay}` : ""}{c.active ? "" : " · arquivado"}</div>
                 </div>
-                {c.active ? <button className="btn-ghost text-xs text-red-600" onClick={() => remove(c)}>Remover</button> : <button className="btn-ghost text-xs" onClick={() => reactivate(c)}>Reativar</button>}
+                {c.active ? <button className="btn-ghost btn-xs hover:!text-danger" onClick={() => remove(c)}>Remover</button> : <button className="btn-ghost btn-xs" onClick={() => reactivate(c)}>Reativar</button>}
               </div>
-              <div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-800">
-                <div className={`h-full rounded-full ${pct > 85 ? "bg-red-500" : "bg-brand-500"}`} style={{ width: `${pct}%` }} />
+              <div className="track mt-4">
+                <div className={`fill ${pct > 85 ? "fill-danger" : ""}`} style={{ width: `${pct}%` }} />
               </div>
-              <div className="mt-1 flex justify-between text-xs text-slate-500">
+              <div className="mono mt-2 flex justify-between text-[11px] text-t3">
                 <span>Em aberto: {brl(c.used)}</span><span>Disponível: {brl(c.available)} de {brl(c.limit)}</span>
               </div>
             </div>

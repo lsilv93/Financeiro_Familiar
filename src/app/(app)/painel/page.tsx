@@ -4,7 +4,8 @@ import Link from "next/link";
 import { brl, fmtMonth, useApi } from "@/lib/client";
 import { currentMonthClient } from "@/lib/clientDates";
 import { DonutChart } from "@/components/DonutChart";
-import { ErrorBox, MonthPicker, PageHeader, ScopeTabs, Spinner } from "@/components/ui";
+import { Icon } from "@/components/Icon";
+import { ErrorBox, MonthPicker, PageHeader, ScopeTabs, SectionTitle, Spinner } from "@/components/ui";
 
 type Dash = {
   totals: { received: number; spent: number; balance: number; projected: number; incomeTotal: number; expenseTotal: number; pendingExpenses: number };
@@ -18,13 +19,15 @@ type Dash = {
   reserveAtRisk: "OK" | "RESERVE" | "NEGATIVE";
 };
 
-function Stat({ label, value, tone, hint }: { label: string; value: number; tone?: "good" | "bad" | "neutral"; hint?: string }) {
-  const color = tone === "good" ? "text-emerald-600 dark:text-emerald-400" : tone === "bad" ? "text-rose-600 dark:text-rose-400" : "";
+function Kpi({ label, value, tone, hint, size = "lg" }: { label: string; value: number; tone?: "good" | "bad" | "plain" | "gold"; hint?: string; size?: "lg" | "md" }) {
+  const color = tone === "good" ? "text-lime" : tone === "bad" ? "text-danger" : tone === "gold" ? "text-gold" : "text-white";
   return (
-    <div className="card">
-      <div className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">{label}</div>
-      <div className={`mt-1 text-xl font-bold tabular-nums sm:text-2xl ${color}`}>{brl(value)}</div>
-      {hint && <div className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">{hint}</div>}
+    <div className="card !p-[18px]">
+      <div className="kicker mb-3">{label}</div>
+      <div className="well !rounded-[18px] !px-4 !py-3">
+        <div className={`mono truncate font-semibold ${color} ${size === "lg" ? "text-[22px]" : "text-[20px]"}`}>{brl(value)}</div>
+      </div>
+      {hint && <div className="mt-2.5 text-[11px] text-t4">{hint}</div>}
     </div>
   );
 }
@@ -37,70 +40,65 @@ export default function PainelPage() {
   return (
     <div>
       <PageHeader title="Painel" subtitle="Visão geral das suas finanças" />
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <MonthPicker month={month} onChange={setMonth} label={fmtMonth(month)} />
         <ScopeTabs value={scope} onChange={setScope} />
       </div>
 
       {error && <ErrorBox message={error} />}
-      {loading && !data && <Spinner className="my-10" />}
+      {loading && !data && <Spinner className="my-16" />}
       {data && (
-        <div className={`space-y-4 ${loading ? "opacity-60" : ""}`}>
+        <div className={`space-y-5 transition-opacity ${loading ? "opacity-60" : ""}`}>
           {data.overdue.count > 0 && (
-            <Link href="/atrasos" className="flex items-center justify-between rounded-2xl border border-red-200 bg-red-50 p-4 text-red-800 dark:border-red-900 dark:bg-red-950 dark:text-red-200">
-              <span>🚨 <b>{data.overdue.count}</b> {data.overdue.count === 1 ? "conta vencida" : "contas vencidas"} · {brl(data.overdue.total)}</span>
-              <span className="text-sm font-semibold">Ver →</span>
+            <Link href="/atrasos" className="well-danger card-link flex items-center justify-between gap-3">
+              <span className="flex items-center gap-3 text-[13px] text-danger-light"><Icon name="alert" size={20} className="text-danger" />
+                <span><b className="mono">{data.overdue.count}</b> {data.overdue.count === 1 ? "conta vencida" : "contas vencidas"} · <span className="mono">{brl(data.overdue.total)}</span></span></span>
+              <span className="text-[12px] font-semibold text-danger">Ver</span>
             </Link>
           )}
           {data.overdue.count === 0 && data.upcoming.count > 0 && (
-            <Link href="/atrasos" className="flex items-center justify-between rounded-2xl border border-amber-200 bg-amber-50 p-4 text-amber-800 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-200">
-              <span>⏳ <b>{data.upcoming.count}</b> {data.upcoming.count === 1 ? "conta vence" : "contas vencem"} nos próximos 7 dias · {brl(data.upcoming.total)}</span>
-              <span className="text-sm font-semibold">Ver →</span>
+            <Link href="/atrasos" className="well-gold card-link flex items-center justify-between gap-3">
+              <span className="flex items-center gap-3 text-[13px] text-gold"><Icon name="clock" size={20} />
+                <span><b className="mono">{data.upcoming.count}</b> {data.upcoming.count === 1 ? "conta vence" : "contas vencem"} nos próximos 7 dias · <span className="mono">{brl(data.upcoming.total)}</span></span></span>
+              <span className="text-[12px] font-semibold">Ver</span>
             </Link>
           )}
           {data.reserveAtRisk !== "OK" && (
-            <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-200">
+            <div className="well-gold flex items-center gap-3 text-[13px] text-gold">
+              <Icon name="alert" size={20} />
               {data.reserveAtRisk === "NEGATIVE"
-                ? "⚠️ A projeção do mês está negativa: as despesas previstas superam os rendimentos."
-                : `⚠️ A projeção do mês ficou abaixo da sua reserva de emergência (${brl(data.emergencyReserve)}).`}
+                ? "A projeção do mês está negativa: as despesas previstas superam os rendimentos."
+                : `A projeção do mês ficou abaixo da sua reserva de emergência (${brl(data.emergencyReserve)}).`}
             </div>
           )}
 
-          <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-            <Stat label="Total recebido" value={data.totals.received} tone="good" hint={`Previsto: ${brl(data.totals.incomeTotal)}`} />
-            <Stat label="Total gasto" value={data.totals.spent} tone="bad" hint={`A pagar: ${brl(data.totals.pendingExpenses)}`} />
-            <Stat label="Saldo atual" value={data.totals.balance} tone={data.totals.balance >= 0 ? "good" : "bad"} hint="Recebido − gasto" />
-            <Stat label="Projeção fim do mês" value={data.totals.projected} tone={data.totals.projected >= 0 ? "good" : "bad"} hint="Rendimentos − despesas previstas" />
+          <div className="stagger grid grid-cols-1 gap-4 min-[520px]:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4">
+            <Kpi label="Total recebido" value={data.totals.received} tone="good" hint={`Previsto ${brl(data.totals.incomeTotal)}`} />
+            <Kpi label="Total gasto" value={data.totals.spent} tone="bad" hint={`A pagar ${brl(data.totals.pendingExpenses)}`} />
+            <Kpi label="Saldo atual" value={data.totals.balance} tone={data.totals.balance >= 0 ? "plain" : "bad"} hint="Recebido − gasto" />
+            <Kpi label="Projeção do fim do mês" value={data.totals.projected} tone={data.totals.projected >= 0 ? "good" : "bad"} hint="Rendimentos − despesas previstas" />
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <div className="card">
-              <div className="text-xs font-medium uppercase tracking-wide text-slate-500">📈 Investido no mês</div>
-              <div className="mt-1 text-xl font-bold tabular-nums text-emerald-600 dark:text-emerald-400">{brl(data.invested.paid)}</div>
-              {data.invested.planned > data.invested.paid && <div className="text-xs text-slate-500">Previsto: {brl(data.invested.planned)}</div>}
-            </div>
-            <div className="card">
-              <div className="text-xs font-medium uppercase tracking-wide text-slate-500">🙏 Dízimos e doações</div>
-              <div className="mt-1 text-xl font-bold tabular-nums text-amber-600 dark:text-amber-400">{brl(data.tithes.paid)}</div>
-              {data.tithes.planned > data.tithes.paid && <div className="text-xs text-slate-500">Previsto: {brl(data.tithes.planned)}</div>}
-            </div>
+          <div className="stagger grid grid-cols-1 gap-4 min-[520px]:grid-cols-2">
+            <Kpi size="md" label="Investido no mês" value={data.invested.paid} tone="good" hint={data.invested.planned > data.invested.paid ? `Previsto ${brl(data.invested.planned)}` : undefined} />
+            <Kpi size="md" label="Dízimos e doações" value={data.tithes.paid} tone="gold" hint={data.tithes.planned > data.tithes.paid ? `Previsto ${brl(data.tithes.planned)}` : undefined} />
           </div>
 
           {data.topCategory && (
-            <div className="card flex items-center gap-3 border-l-4" style={{ borderLeftColor: data.topCategory.color }}>
-              <div className="text-3xl" aria-hidden>🔥</div>
-              <div>
-                <div className="text-xs font-medium uppercase tracking-wide text-slate-500">Maior gasto do mês</div>
-                <div className="font-bold">{data.topCategory.label}</div>
-                <div className="text-sm text-slate-600 dark:text-slate-400">{brl(data.topCategory.total)} · {data.topCategory.percent.toFixed(0)}% das despesas</div>
+            <div className="card flex items-center gap-4 !p-[18px]">
+              <div className="chip !h-12 !w-12 !rounded-[18px]"><span className="h-4 w-4 rounded-full" style={{ background: data.topCategory.color }} /></div>
+              <div className="min-w-0">
+                <div className="kicker">Maior gasto do mês</div>
+                <div className="mt-1 truncate text-[16px] font-semibold text-white">{data.topCategory.label}</div>
+                <div className="mono text-[12px] text-t3">{brl(data.topCategory.total)} · {data.topCategory.percent.toFixed(0)}% das despesas</div>
               </div>
             </div>
           )}
 
           <div className="card">
-            <h2 className="mb-3 font-semibold">Despesas por categoria</h2>
+            <SectionTitle>Despesas por categoria</SectionTitle>
             {data.categories.length === 0 ? (
-              <p className="py-6 text-center text-sm text-slate-500">Nenhuma despesa neste mês.</p>
+              <div className="well py-8 text-center text-[13px] text-t3">Nenhuma despesa neste mês.</div>
             ) : (
               <DonutChart data={data.categories} total={data.totals.expenseTotal} />
             )}

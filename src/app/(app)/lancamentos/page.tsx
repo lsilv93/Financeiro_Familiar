@@ -42,21 +42,21 @@ export default function ExtratoPage() {
 
   return (
     <div>
-      <PageHeader title="Extrato" subtitle="Receitas e despesas com filtros" actions={<Link href="/lancamentos/novo" className="btn-primary hidden sm:inline-flex">+ Novo</Link>} />
+      <PageHeader title="Extrato" subtitle="Receitas e despesas com filtros" actions={<Link href="/lancamentos/novo" className="btn-primary hidden sm:inline-flex">Novo lançamento</Link>} />
 
-      <div className="card mb-4 space-y-3">
+      <div className="card mb-5 space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-2">
           {mode === "month" ? <MonthPicker month={month} onChange={reset(setMonth)} label={fmtMonth(month)} /> : (
             <div className="flex items-center gap-2">
-              <input type="date" aria-label="De" className="input !w-auto" value={from} onChange={(e) => reset(setFrom)(e.target.value)} />
-              <span>até</span>
-              <input type="date" aria-label="Até" className="input !w-auto" value={to} onChange={(e) => reset(setTo)(e.target.value)} />
+              <input type="date" aria-label="De" className="input mono !w-auto" value={from} onChange={(e) => reset(setFrom)(e.target.value)} />
+              <span className="text-t3">até</span>
+              <input type="date" aria-label="Até" className="input mono !w-auto" value={to} onChange={(e) => reset(setTo)(e.target.value)} />
             </div>
           )}
-          <button className="btn-ghost text-xs" onClick={() => setMode(mode === "month" ? "range" : "month")}>{mode === "month" ? "Escolher período" : "Filtrar por mês"}</button>
+          <button className="btn-ghost btn-xs" onClick={() => setMode(mode === "month" ? "range" : "month")}>{mode === "month" ? "Escolher período" : "Filtrar por mês"}</button>
         </div>
         <ScopeTabs value={scope} onChange={reset(setScope)} />
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+        <div className="grid grid-cols-1 gap-3 min-[520px]:grid-cols-2 lg:grid-cols-4">
           <select aria-label="Tipo" className="input" value={type} onChange={(e) => reset(setType)(e.target.value)}>
             <option value="">Receitas e despesas</option><option value="INCOME">Receitas</option><option value="EXPENSE">Despesas</option>
           </select>
@@ -76,10 +76,10 @@ export default function ExtratoPage() {
       </div>
 
       {data && (
-        <div className="mb-4 grid grid-cols-3 gap-2 text-center text-sm">
-          <div className="card !p-3"><div className="text-xs text-slate-500">Receitas</div><div className="font-bold text-emerald-600 dark:text-emerald-400">{brl(data.totals.income)}</div></div>
-          <div className="card !p-3"><div className="text-xs text-slate-500">Despesas</div><div className="font-bold text-rose-600 dark:text-rose-400">{brl(data.totals.expense)}</div></div>
-          <div className="card !p-3"><div className="text-xs text-slate-500">Saldo</div><div className="font-bold">{brl(data.totals.balance)}</div></div>
+        <div className="stagger mb-5 grid grid-cols-1 gap-3 min-[520px]:grid-cols-3">
+          <div className="card-sm"><div className="kicker mb-2">Receitas</div><div className="well !rounded-[16px] !px-3 !py-2"><div className="mono text-[16px] font-semibold text-lime">{brl(data.totals.income)}</div></div></div>
+          <div className="card-sm"><div className="kicker mb-2">Despesas</div><div className="well !rounded-[16px] !px-3 !py-2"><div className="mono text-[16px] font-semibold text-danger">{brl(data.totals.expense)}</div></div></div>
+          <div className="card-sm"><div className="kicker mb-2">Saldo</div><div className="well !rounded-[16px] !px-3 !py-2"><div className="mono text-[16px] font-semibold text-white">{brl(data.totals.balance)}</div></div></div>
         </div>
       )}
 
@@ -89,10 +89,10 @@ export default function ExtratoPage() {
         <div className={`card ${loading ? "opacity-60" : ""}`}>
           {data.items.length === 0 ? <Empty>Nenhum lançamento encontrado para este filtro.</Empty> : <TransactionList items={data.items} onChanged={reload} />}
           {pages > 1 && (
-            <div className="mt-3 flex items-center justify-between">
-              <button className="btn-secondary" disabled={page <= 1} onClick={() => setPage(page - 1)}>← Anterior</button>
-              <span className="text-sm text-slate-500">Página {page} de {pages}</span>
-              <button className="btn-secondary" disabled={page >= pages} onClick={() => setPage(page + 1)}>Próxima →</button>
+            <div className="groove mt-3 flex items-center justify-between pt-4">
+              <button className="btn-secondary" disabled={page <= 1} onClick={() => setPage(page - 1)}>Anterior</button>
+              <span className="text-[12px] text-t3">Página {page} de {pages}</span>
+              <button className="btn-secondary" disabled={page >= pages} onClick={() => setPage(page + 1)}>Próxima</button>
             </div>
           )}
         </div>

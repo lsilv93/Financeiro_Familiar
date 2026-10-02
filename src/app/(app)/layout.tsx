@@ -10,7 +10,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   return (
     <>
       <Sidebar userName={user.name} />
-      <main className="mx-auto max-w-5xl px-4 pb-28 pt-5 md:ml-64 md:max-w-none md:px-8 md:pb-10">
+      <main className="mx-auto max-w-5xl px-[14px] pb-32 pt-6 md:ml-[17rem] md:max-w-none md:px-8 md:pb-10 md:pt-8">
         <div className="mx-auto max-w-5xl">{children}</div>
       </main>
       <BottomNav />
