@@ -37,7 +37,7 @@ function useOverdueCount() {
   return data?.overdue.length ?? 0;
 }
 
-export function Sidebar({ userName }: { userName: string }) {
+export function Sidebar({ userName, familyName }: { userName: string; familyName: string }) {
   const path = usePathname();
   const overdue = useOverdueCount();
   const unread = useUnread();
@@ -69,7 +69,7 @@ export function Sidebar({ userName }: { userName: string }) {
         })}
       </nav>
       <div className="groove mt-3 pt-3">
-        <div className="mb-1 truncate px-4 text-[12px] text-t3">{userName}</div>
+        <div className="mb-1 px-4 leading-tight"><div className="truncate text-[12px] font-semibold text-t2">{userName}</div><div className="truncate text-[11px] text-t4">{familyName}</div></div>
         <ThemeToggle className="w-full !justify-start" />
         <button onClick={() => signOut({ callbackUrl: "/login" })} className="btn-ghost w-full !justify-start"><Icon name="out" size={16} />Sair</button>
       </div>

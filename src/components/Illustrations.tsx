@@ -1,4 +1,4 @@
-// Ilustrações animadas (SVG + CSS) com tema financeiro: moedas, cartão e cofrinho.
+// Ilustrações animadas (SVG + CSS) com tema financeiro: moedas e cofrinho.
 import type { CSSProperties } from "react";
 
 export function LogoMark({ size = 40 }: { size?: number }) {
@@ -27,24 +27,6 @@ export function Coin({ size = 48, className = "", style }: { size?: number; clas
   );
 }
 
-export function FloatingCard({ className = "" }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 220 140" className={`card-float ${className}`} aria-hidden="true">
-      <defs>
-        <linearGradient id="fc" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#1B3F57" /><stop offset="1" stopColor="#0B2233" /></linearGradient>
-        <linearGradient id="fc2" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stopColor="#D0FF45" /><stop offset="1" stopColor="#A9E113" /></linearGradient>
-      </defs>
-      <rect x="6" y="6" width="208" height="128" rx="18" fill="url(#fc)" stroke="#2B4A63" strokeOpacity=".6" />
-      <rect x="22" y="30" width="34" height="26" rx="6" fill="#E8C547" />
-      <path d="M22 43h34M39 30v26" stroke="#9A6B00" strokeOpacity=".5" />
-      <rect x="22" y="82" width="120" height="8" rx="4" fill="#fff" fillOpacity=".25" />
-      <rect x="22" y="100" width="70" height="8" rx="4" fill="#fff" fillOpacity=".15" />
-      <circle cx="170" cy="104" r="14" fill="url(#fc2)" />
-      <circle cx="184" cy="104" r="14" fill="#E8C547" fillOpacity=".85" />
-    </svg>
-  );
-}
-
 export function PiggyBank({ className = "" }: { className?: string }) {
   return (
     <svg viewBox="0 0 200 150" className={className} aria-hidden="true">
@@ -56,17 +38,6 @@ export function PiggyBank({ className = "" }: { className?: string }) {
       <path d="M76 46h50" stroke="#000E19" strokeOpacity=".55" strokeWidth="5" strokeLinecap="round" />
       <path d="M56 54c-8-2-12-8-10-16 8 0 14 4 16 10z" fill="#A9E113" />
     </svg>
-  );
-}
-
-/** Moedas caindo suavemente ao fundo (decorativo). */
-export function CoinRain({ count = 7 }: { count?: number }) {
-  return (
-    <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
-      {Array.from({ length: count }, (_, i) => (
-        <Coin key={i} size={18 + ((i * 7) % 16)} className="coin-fall" style={{ left: `${(i * 53) % 100}%`, animationDelay: `${(i * 1.3) % 7}s`, animationDuration: `${9 + (i % 4) * 2}s` }} />
-      ))}
-    </div>
   );
 }
 

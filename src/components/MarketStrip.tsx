@@ -11,7 +11,7 @@ export function MarketStrip() {
   const items = MAIN.map((c) => data?.indicators.find((i) => i.code === c)).filter((x): x is Indicator => !!x);
   if (!items.length) return null;
   return (
-    <Link href="/noticias" className="scroll-x -mx-1 flex gap-3 px-1 pb-2" aria-label="Indicadores do dia">
+    <div className="scroll-x -mx-1 flex gap-3 px-1 pb-2" tabIndex={0} role="region" aria-label="Indicadores do dia (role para o lado)">
       {items.map((i) => (
         <div key={i.code} className="card-sm flex min-w-[140px] flex-1 flex-col gap-1 !rounded-[20px] !p-3.5">
           <span className="kicker">{i.name}</span>
@@ -19,6 +19,7 @@ export function MarketStrip() {
           {i.pct !== null && <span className={`mono text-[11px] font-semibold ${i.pct >= 0 ? "text-lime" : "text-danger"}`}>{i.pct >= 0 ? "▲" : "▼"} {Math.abs(i.pct).toFixed(2).replace(".", ",")}%</span>}
         </div>
       ))}
-    </Link>
+      <Link href="/noticias" className="btn-secondary btn-xs shrink-0 self-center">Ver notícias</Link>
+    </div>
   );
 }
