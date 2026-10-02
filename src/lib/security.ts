@@ -7,7 +7,7 @@ export const MAX_INVITE_FAILURES = 3;
 export const BLOCK_MINUTES = 30;
 export const MAX_FAMILY_MEMBERS = 12;
 
-const sha = (s: string) => createHash("sha256").update(s).digest("hex").slice(0, 32);
+export const sha = (s: string) => createHash("sha256").update(s).digest("hex").slice(0, 32);
 
 /** IP do cliente (a Vercel preenche x-forwarded-for) -> chave anônima (hash). */
 export async function ipKey(prefix: string): Promise<string> {

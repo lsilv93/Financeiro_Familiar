@@ -9,7 +9,7 @@ export const FAMILY_ROLES = ["HUSBAND", "WIFE", "CHILD"] as const;
 export const registerSchema = z.object({
   name: z.string().trim().min(2, "Informe seu nome").max(80),
   email: z.string().trim().toLowerCase().email("Email inválido"),
-  password: z.string().min(8, "A senha deve ter ao menos 8 caracteres").max(100),
+  password: z.string().min(8, "A senha deve ter ao menos 8 caracteres").max(72, "A senha deve ter no máximo 72 caracteres"),
   role: z.enum(FAMILY_ROLES, { errorMap: () => ({ message: "Escolha se você é marido, mulher ou filho(a)" }) }),
   inviteCode: z.string().trim().toUpperCase().max(20).optional().nullable(),
   familyName: z.string().trim().max(80).optional().nullable(),
@@ -30,6 +30,7 @@ export const transactionSchema = z
     cardId: z.string().optional().nullable().transform((v) => v || null),
     installments: z.coerce.number().int().min(1).max(120).default(1),
     recurring: z.boolean().default(false),
+    repeatMonths: z.coerce.number().int().min(1).max(120).optional().nullable(),
   })
   .superRefine((v, ctx) => {
     if (!isValidCategory(v.type, v.category)) ctx.addIssue({ code: "custom", path: ["category"], message: "Categoria inválida" });
@@ -40,6 +41,7 @@ export const transactionSchema = z
         ctx.addIssue({ code: "custom", path: ["subcategory"], message: "Subcategoria inválida" });
     }
     if (v.type === "INCOME" && v.installments > 1) ctx.addIssue({ code: "custom", path: ["installments"], message: "Receitas não podem ser parceladas" });
+    if (v.repeatMonths && !v.recurring) ctx.addIssue({ code: "custom", path: ["repeatMonths"], message: "Duração só vale para lançamentos fixos" });
     if (v.installments > 1 && v.recurring) ctx.addIssue({ code: "custom", path: ["recurring"], message: "Parcelamento e recorrência não podem ser combinados" });
   });
 

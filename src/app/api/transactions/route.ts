@@ -5,6 +5,7 @@ import { transactionSchema } from "@/lib/validation";
 import { getUsableCard, resolveDueDate, serializeTx, txInclude } from "@/lib/finance";
 import { dayInMonth, fmtDay, monthOf, parseDay, shiftMonth, isMonth } from "@/lib/dates";
 import { num, round2, splitInstallments } from "@/lib/money";
+import { ensureRecurring } from "@/lib/recurring";
 
 export const dynamic = "force-dynamic";
 
@@ -12,6 +13,8 @@ export async function GET(req: Request) {
   return handle(async () => {
     const user = await requireUser();
     const q = new URL(req.url).searchParams;
+    const wantMonth = q.get("month") ?? (q.get("to") ? q.get("to")!.slice(0, 7) : undefined);
+    await ensureRecurring(user, wantMonth && isMonth(wantMonth) ? wantMonth : undefined);
     const filters: Prisma.TransactionWhereInput[] = [visibleWhere(user, parseScopeFilter(q.get("scope")))];
 
     const month = q.get("month");
@@ -32,7 +35,7 @@ export async function GET(req: Request) {
     if (category) filters.push({ category });
     const cardId = q.get("cardId");
     if (cardId) filters.push({ cardId });
-    const search = q.get("q")?.trim();
+    const search = q.get("q")?.trim().slice(0, 100);
     if (search) filters.push({ description: { contains: search, mode: "insensitive" } });
 
     const where: Prisma.TransactionWhereInput = { AND: filters };
@@ -109,6 +112,8 @@ export async function POST(req: Request) {
       return { id: plan.transactions[0].id, planId: plan.id, created: b.installments };
     }
 
+    // Mês-rótulo da recorrência: cartão = mês da compra; demais = mês do vencimento.
+    const label = card ? monthOf(parseDay(b.date)) : monthOf(firstDue);
     const tx = await prisma.$transaction(async (db) => {
       let ruleId: string | null = null;
       if (b.recurring) {
@@ -122,6 +127,8 @@ export async function POST(req: Request) {
             paymentMethod: method,
             // cartão: dia da compra; demais: dia do vencimento
             dayOfMonth: (card ? parseDay(b.date) : firstDue).getUTCDate(),
+            startMonth: label,
+            endMonth: b.repeatMonths ? shiftMonth(label, b.repeatMonths - 1) : null,
             scope: b.scope,
             userId: user.id,
             familyId: user.familyId,
@@ -138,10 +145,12 @@ export async function POST(req: Request) {
           status: b.status,
           paidAt: b.status === "PAID" ? new Date() : null,
           ruleId,
-          recurringMonth: ruleId ? monthOf(firstDue) : null,
+          recurringMonth: ruleId ? label : null,
         },
       });
     });
-    return { id: tx.id, created: 1, dueDate: fmtDay(tx.dueDate) };
+    let replicated = 0;
+    if (b.recurring) replicated = await ensureRecurring(user);
+    return { id: tx.id, created: 1 + replicated, replicated, dueDate: fmtDay(tx.dueDate) };
   });
 }

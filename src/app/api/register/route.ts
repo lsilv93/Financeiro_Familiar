@@ -3,7 +3,7 @@ import { hash } from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { registerSchema } from "@/lib/validation";
 import { HttpError, handle } from "@/lib/session";
-import { lookupInvite } from "@/lib/security";
+import { ipKey, lookupInvite, rateLimit } from "@/lib/security";
 
 export const dynamic = "force-dynamic";
 
@@ -12,6 +12,7 @@ const newInviteCode = () => randomBytes(5).toString("hex").toUpperCase();
 export async function POST(req: Request) {
   return handle(async () => {
     const body = registerSchema.parse(await req.json());
+    await rateLimit(await ipKey("register"), 10, 60); // até 9 cadastros por hora por IP
     if (await prisma.user.findUnique({ where: { email: body.email } })) throw new HttpError(409, "Este email já está cadastrado");
 
     let familyId: string;

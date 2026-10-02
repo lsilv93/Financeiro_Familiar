@@ -19,7 +19,7 @@
     "fast-xml-parser": "^5.11.2",
     "next": "^15.5.0",
     "next-auth": "^4.24.11",
-    "nodemailer": "^7.0.13",
+    "nodemailer": "^10.0.13",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "zod": "^3.24.0"
@@ -38,5 +38,14 @@
   },
   "engines": {
     "node": ">=20"
+  },
+  "overrides": {
+    "next": {
+      "postcss": "$postcss"
+    },
+    "next-auth": {
+      "nodemailer": "$nodemailer"
+    },
+    "deepmerge-ts": "^8.0.2"
   }
 }

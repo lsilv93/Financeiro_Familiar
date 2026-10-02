@@ -139,6 +139,8 @@ model RecurringRule {
   subcategory   String?
   paymentMethod PaymentMethod?
   dayOfMonth    Int
+  startMonth    String // "YYYY-MM": primeiro mês em que vale
+  endMonth      String? // "YYYY-MM": último mês (vazio = sem fim)
   scope         Scope
   active        Boolean        @default(true)
   createdAt     DateTime       @default(now())

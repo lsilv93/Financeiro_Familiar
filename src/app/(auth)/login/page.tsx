@@ -17,7 +17,9 @@ export default function LoginPage() {
     const res = await signIn("credentials", { email, password, redirect: false });
     if (res?.error) {
       setError(
-        res.error === "LOCKED"
+        res.error === "RATE"
+          ? "Muitas tentativas deste dispositivo. Aguarde alguns minutos e tente novamente."
+          : res.error === "LOCKED"
           ? "Conta bloqueada após 3 tentativas incorretas. Use “Esqueci minha senha” para receber um link de recuperação por email."
           : "Email ou senha incorretos. Após 3 tentativas a conta é bloqueada.",
       );

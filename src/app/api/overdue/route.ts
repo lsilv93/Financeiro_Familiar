@@ -3,6 +3,7 @@ import { handle, parseScopeFilter, requireUser, visibleWhere } from "@/lib/sessi
 import { serializeTx, txInclude } from "@/lib/finance";
 import { today } from "@/lib/dates";
 import { round2 } from "@/lib/money";
+import { ensureRecurring } from "@/lib/recurring";
 
 export const dynamic = "force-dynamic";
 
@@ -10,6 +11,7 @@ export const dynamic = "force-dynamic";
 export async function GET(req: Request) {
   return handle(async () => {
     const user = await requireUser();
+    await ensureRecurring(user);
     const q = new URL(req.url).searchParams;
     const days = Math.min(60, Math.max(1, Number(q.get("days")) || 7));
     const t0 = today();

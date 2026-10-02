@@ -40,6 +40,7 @@ export async function handle<T>(fn: () => Promise<T>): Promise<NextResponse> {
     return NextResponse.json(await fn());
   } catch (e) {
     if (e instanceof HttpError) return NextResponse.json({ error: e.message, ...e.extra }, { status: e.status });
+    if (e instanceof SyntaxError) return NextResponse.json({ error: "JSON inválido" }, { status: 400 });
     if (e && typeof e === "object" && "issues" in e) {
       const issues = (e as { issues: { path: (string | number)[]; message: string }[] }).issues;
       const msg = issues.map((i) => (i.path.length ? `${i.path.join(".")}: ` : "") + i.message).join("; ");

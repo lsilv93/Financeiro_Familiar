@@ -56,13 +56,58 @@ export function parseFeed(xml: string, source: string): NewsItem[] {
   return out;
 }
 
+const MAX_BYTES = 2_000_000; // limite de tamanho de resposta externa (evita consumo excessivo de memória)
+const MAX_REDIRECTS = 3;
+
+/** Só segue destinos https de nome de host público (nada de IPs, localhost ou redes internas). */
+export function isSafeUrl(u: URL): boolean {
+  if (u.protocol !== "https:" || u.username || u.password) return false;
+  const h = u.hostname.toLowerCase();
+  if (h === "localhost" || /^\d+\.\d+\.\d+\.\d+$/.test(h) || h.includes(":") || /\.(local|internal|lan|home|corp)$/.test(h)) return false;
+  return h.includes(".");
+}
+
+async function readLimited(r: Response): Promise<string> {
+  const declared = Number(r.headers.get("content-length") ?? 0);
+  if (declared > MAX_BYTES) throw new Error("resposta muito grande");
+  if (!r.body) return "";
+  const reader = r.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let total = 0;
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    total += value.length;
+    if (total > MAX_BYTES) {
+      await reader.cancel();
+      throw new Error("resposta muito grande");
+    }
+    chunks.push(value);
+  }
+  return new TextDecoder("utf-8").decode(Buffer.concat(chunks));
+}
+
 async function fetchText(url: string, revalidate: number, timeoutMs = 7000): Promise<string> {
   const ctrl = new AbortController();
   const t = setTimeout(() => ctrl.abort(), timeoutMs);
   try {
-    const r = await fetch(url, { signal: ctrl.signal, headers: { "User-Agent": "Mozilla/5.0 (compatible; FinanceiroFamiliar/1.0)", Accept: "application/rss+xml, application/xml, text/xml, */*" }, next: { revalidate } });
-    if (!r.ok) throw new Error(`HTTP ${r.status}`);
-    return await r.text();
+    let current = new URL(url);
+    for (let hop = 0; hop <= MAX_REDIRECTS; hop++) {
+      if (!isSafeUrl(current)) throw new Error("destino não permitido");
+      const r = await fetch(current, {
+        signal: ctrl.signal,
+        redirect: "manual",
+        headers: { "User-Agent": "Mozilla/5.0 (compatible; FinanceiroFamiliar/1.0)", Accept: "application/rss+xml, application/xml, text/xml, application/json, */*" },
+        next: { revalidate },
+      });
+      if (r.status >= 300 && r.status < 400 && r.headers.get("location")) {
+        current = new URL(r.headers.get("location")!, current);
+        continue;
+      }
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      return await readLimited(r);
+    }
+    throw new Error("redirecionamentos demais");
   } finally {
     clearTimeout(t);
   }

@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { handle, requireUser } from "@/lib/session";
 import { num } from "@/lib/money";
+import { visibleRulesWhere } from "@/lib/recurring";
 
 export const dynamic = "force-dynamic";
 
@@ -8,7 +9,7 @@ export async function GET() {
   return handle(async () => {
     const user = await requireUser();
     const rules = await prisma.recurringRule.findMany({
-      where: { OR: [{ scope: "PERSONAL", userId: user.id }, { scope: "FAMILY", familyId: user.familyId }] },
+      where: visibleRulesWhere(user),
       include: { card: { select: { name: true } } },
       orderBy: [{ active: "desc" }, { dayOfMonth: "asc" }],
     });
@@ -22,6 +23,8 @@ export async function GET() {
       paymentMethod: r.paymentMethod,
       cardName: r.card?.name ?? null,
       dayOfMonth: r.dayOfMonth,
+      startMonth: r.startMonth,
+      endMonth: r.endMonth,
       scope: r.scope,
       active: r.active,
     }));

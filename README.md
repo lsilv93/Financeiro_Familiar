@@ -12,6 +12,7 @@ Sistema de controle financeiro **pessoal e familiar**, mobile-first, no sistema 
 | Família e perfis | No cadastro, cada pessoa escolhe **Marido, Mulher ou Filho(a)** e **cria uma família** ou **entra com o código**. O botão **Convidar família** abre o WhatsApp com o link `/convite/CODIGO`; ao abrir, a pessoa escolhe entre entrar naquela família ou criar a sua. |
 | Isolamento | Cada usuário só acessa os próprios dados pessoais e os dados familiares da **sua** família. Todas as consultas e ações por ID filtram por usuário/família no servidor (acesso a dados de outra família retorna 404). |
 | Segurança de acesso | **3 senhas erradas bloqueiam a conta**; o desbloqueio é só pelo link de redefinição enviado ao e-mail (vale 1 h, uso único, invalida sessões antigas). Códigos de convite inválidos: após **3 tentativas** o IP/usuário fica bloqueado por 30 min; o código pode ser trocado em Configurações. |
+| Tipos de lançamento | **Variável** (só no mês), **Fixa** (replica sozinha pelos próximos meses, com ou sem data final; dá para pausar, alterar o valor ou excluir) e **Parcelada** (uma parcela por mês). Cada mês mostra receitas, despesas e saldo (tela Previsão, com visão de 12 meses, e Painel). Poupança não se replica. |
 | Minha reserva | Poupança por banco: **guardar** e **resgatar** (com confirmação obrigatória), histórico, evolução e meta de reserva. |
 | Dashboard | Filtros **Dia / Semana / Mês / Ano / Total**, fluxo de caixa, saldo acumulado com projeção, saúde financeira, regra 50/30/20, uso dos cartões e cobertura da reserva. |
 | Notícias | Feeds RSS de veículos conhecidos (G1, InfoMoney, Agência Brasil, CNN Brasil, Exame, Folha) classificados em dólar, inflação, investimentos e Brasil, além de cotações (AwesomeAPI) e Selic/IPCA (Banco Central). |
@@ -146,6 +147,11 @@ Em **Settings → Environment Variables** da Vercel, adicione **uma** das opçõ
 - **Login volta para a tela de login** → `NEXTAUTH_SECRET` ausente ou `NEXTAUTH_URL` diferente do domínio acessado.
 
 ## Segurança — notas
+- **Cabeçalhos:** CSP, HSTS, X-Frame-Options, nosniff, Referrer/Permissions-Policy; respostas da API com `no-store`.
+- **API:** todas as rotas (exceto cadastro, login, convite e recuperação) exigem sessão; middleware bloqueia requisições de outra origem (CSRF), corpos > 256 KB e conteúdo que não seja JSON.
+- **Abuso:** limites por IP/usuário em login (3 senhas erradas bloqueiam a conta; 20 falhas bloqueiam o IP), cadastro, recuperação de senha, convites e notícias.
+- **Notícias:** fontes fixas, apenas https com host público (sem IP/localhost), limite de tamanho/tempo e links sanitizados.
+- **Dependências:** `npm audit --omit=dev` = 0 vulnerabilidades (com `overrides` para PostCSS, Nodemailer e deepmerge-ts).
 - Senhas com bcrypt (custo 12); sessões JWT assinadas por `NEXTAUTH_SECRET`.
 - Todas as rotas validam a sessão e filtram por usuário/família no servidor; a entrada é validada com Zod.
 - Para uso público em larga escala, considere adicionar *rate limiting* nas rotas de login/cadastro (ex.: Upstash Ratelimit) e confirmação de email.

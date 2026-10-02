@@ -29,8 +29,9 @@ export function TransactionForm() {
   const [status, setStatus] = useState<"PAID" | "PENDING">("PAID");
   const [method, setMethod] = useState<Method>("PIX");
   const [cardId, setCardId] = useState("");
-  const [installments, setInstallments] = useState(1);
-  const [recurring, setRecurring] = useState(false);
+  const [kind, setKind] = useState<"VARIABLE" | "FIXED" | "INSTALLMENT">("VARIABLE");
+  const [installments, setInstallments] = useState(2);
+  const [repeatMonths, setRepeatMonths] = useState("");
 
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -39,11 +40,12 @@ export function TransactionForm() {
   const isExpense = type === "EXPENSE";
   const isCredit = isExpense && method === "CREDIT";
   const value = Number(amount.replace(",", ".")) || 0;
+  const nInst = isExpense && kind === "INSTALLMENT" ? installments : 1;
 
   useEffect(() => {
     setCategory(type === "EXPENSE" ? "ALIMENTACAO" : "SALARIO");
     setSubcategory("");
-    if (type === "INCOME") { setInstallments(1); setStatus("PAID"); }
+    if (type === "INCOME") { setKind((k) => (k === "INSTALLMENT" ? "VARIABLE" : k)); setStatus("PAID"); }
   }, [type]);
   useEffect(() => setSubcategory(""), [category]);
   useEffect(() => { if (isCredit) setStatus("PENDING"); }, [isCredit]);
@@ -54,8 +56,9 @@ export function TransactionForm() {
     subcategory: subcategory || null, date, dueDate: !isCredit && dueDate ? dueDate : null, status,
     paymentMethod: isExpense ? method : null,
     cardId: isCredit ? cardId : null,
-    installments: isExpense ? installments : 1,
-    recurring: recurring && installments === 1,
+    installments: nInst,
+    recurring: kind === "FIXED",
+    repeatMonths: kind === "FIXED" && repeatMonths ? Number(repeatMonths) : null,
   });
 
   async function save() {
@@ -82,7 +85,7 @@ export function TransactionForm() {
       const p = payload();
       const check = await api<Check>("/api/budget-check", {
         method: "POST",
-        body: { scope, amount: p.amount, installments: p.installments, category, subcategory: p.subcategory, date, dueDate: p.dueDate, paymentMethod: method, cardId: p.cardId },
+        body: { scope, amount: p.amount, installments: nInst, category, subcategory: p.subcategory, date, dueDate: p.dueDate, paymentMethod: method, cardId: p.cardId },
       });
       if (check.level === "OK") return save();
       setAlert(check);
@@ -116,13 +119,27 @@ export function TransactionForm() {
         </div>
 
         <div>
+          <span className="label">Tipo de {isExpense ? "despesa" : "receita"}</span>
+          <div className="seg w-full" role="radiogroup" aria-label="Tipo de lançamento">
+            <button type="button" role="radio" aria-checked={kind === "VARIABLE"} className={seg(kind === "VARIABLE")} onClick={() => setKind("VARIABLE")}>Variável</button>
+            <button type="button" role="radio" aria-checked={kind === "FIXED"} className={seg(kind === "FIXED")} onClick={() => setKind("FIXED")}>Fixa</button>
+            {isExpense && <button type="button" role="radio" aria-checked={kind === "INSTALLMENT"} className={seg(kind === "INSTALLMENT")} onClick={() => setKind("INSTALLMENT")}>Parcelada</button>}
+          </div>
+          <p className="mt-2 text-[11px] leading-relaxed text-t4">
+            {kind === "VARIABLE" && `Vale só para o mês deste lançamento. Não se repete nos meses seguintes.`}
+            {kind === "FIXED" && `Replica automaticamente para os próximos meses (${isExpense ? "ex.: aluguel, internet" : "ex.: salário"}). Você pode pausar ou alterar o valor depois, em Previsão.`}
+            {kind === "INSTALLMENT" && `Informe quantas parcelas: o sistema lança uma parcela por mês, nos meses seguintes.`}
+          </p>
+        </div>
+
+        <div>
           <label className="label" htmlFor="desc">Descrição</label>
           <input id="desc" className="input" required maxLength={120} value={description} onChange={(e) => setDescription(e.target.value)} placeholder={isExpense ? "Ex.: Compras do mês" : "Ex.: Salário de outubro"} />
         </div>
 
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="label" htmlFor="amount">{installments > 1 ? "Valor total (R$)" : "Valor (R$)"}</label>
+            <label className="label" htmlFor="amount">{nInst > 1 ? "Valor total (R$)" : "Valor (R$)"}</label>
             <input id="amount" className="input mono" inputMode="decimal" required placeholder="0,00" value={amount} onChange={(e) => setAmount(e.target.value)} />
           </div>
           <div>
@@ -177,11 +194,13 @@ export function TransactionForm() {
             )}
 
             <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="label" htmlFor="inst">Parcelas</label>
-                <input id="inst" type="number" min={1} max={120} className="input mono" value={installments} onChange={(e) => setInstallments(Math.max(1, Math.min(120, Number(e.target.value) || 1)))} />
-                {installments > 1 && value > 0 && <p className="mt-2 text-[11px] text-t4">{installments}x de ≈ {brl(value / installments)}</p>}
-              </div>
+              {kind === "INSTALLMENT" && (
+                <div>
+                  <label className="label" htmlFor="inst">Quantidade de parcelas</label>
+                  <input id="inst" type="number" min={2} max={120} className="input mono" value={installments} onChange={(e) => setInstallments(Math.max(2, Math.min(120, Number(e.target.value) || 2)))} />
+                  {value > 0 && <p className="mono mt-2 text-[11px] text-t4">{installments}x de ≈ {brl(value / installments)}</p>}
+                </div>
+              )}
               {!isCredit && (
                 <div>
                   <label className="label" htmlFor="due">Vencimento <span className="text-t4 normal-case tracking-normal">(opcional)</span></label>
@@ -198,14 +217,15 @@ export function TransactionForm() {
             <button type="button" className={seg(status === "PAID")} onClick={() => setStatus("PAID")}>{isExpense ? "Já paguei" : "Já recebi"}</button>
             <button type="button" className={seg(status === "PENDING")} onClick={() => setStatus("PENDING")}>{isExpense ? "A pagar" : "A receber"}</button>
           </div>
-          {installments > 1 && <p className="mt-2 text-[11px] text-t4">A situação vale para a 1ª parcela; as demais ficam pendentes até você confirmar cada pagamento.</p>}
+          {nInst > 1 && <p className="mt-2 text-[11px] text-t4">A situação vale para a 1ª parcela; as demais ficam pendentes até você confirmar cada pagamento.</p>}
         </div>
 
-        {installments === 1 && (
-          <label className="flex items-center gap-3 text-[13px] text-t2">
-            <input type="checkbox" checked={recurring} onChange={(e) => setRecurring(e.target.checked)} className="check" />
-            Repetir todo mês ({isExpense ? "gasto fixo" : "receita fixa"}) — alimenta a previsão do próximo mês
-          </label>
+        {kind === "FIXED" && (
+          <div>
+            <label className="label" htmlFor="rep">Repetir por quantos meses? <span className="text-t4 normal-case tracking-normal">(vazio = sem data final)</span></label>
+            <input id="rep" type="number" min={1} max={120} className="input mono" placeholder="Ex.: 12" value={repeatMonths} onChange={(e) => setRepeatMonths(e.target.value.replace(/\D/g, "").slice(0, 3))} />
+            <p className="mt-2 text-[11px] text-t4">Os meses seguintes entram como {isExpense ? "“a pagar”" : "“a receber”"} e já aparecem na previsão e no saldo de cada mês.</p>
+          </div>
         )}
 
         <div className="flex gap-3 pt-2">
@@ -227,7 +247,7 @@ export function TransactionForm() {
             </p>
             <dl className="well-gold space-y-1.5 text-[13px] text-t2 [&_dt]:text-gold-label">
               <div className="flex justify-between"><dt>Saldo projetado do mês</dt><dd className="mono">{brl(alert.projectedBefore)}</dd></div>
-              <div className="flex justify-between"><dt>Valor deste gasto{installments > 1 ? " (1ª parcela)" : ""}</dt><dd className="mono">− {brl(alert.impact)}</dd></div>
+              <div className="flex justify-between"><dt>Valor deste gasto{nInst > 1 ? " (1ª parcela)" : ""}</dt><dd className="mono">− {brl(alert.impact)}</dd></div>
               <div className="flex justify-between font-semibold text-fg"><dt>Saldo após o gasto</dt><dd className={`mono ${alert.projectedAfter < 0 ? "text-danger" : "text-fg"}`}>{brl(alert.projectedAfter)}</dd></div>
               {alert.emergencyReserve > 0 && <div className="flex justify-between text-t3"><dt>Reserva a preservar</dt><dd className="mono">{brl(alert.emergencyReserve)}</dd></div>}
             </dl>

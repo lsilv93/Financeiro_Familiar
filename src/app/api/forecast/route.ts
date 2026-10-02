@@ -3,6 +3,7 @@ import { handle, parseScopeFilter, requireUser, visibleWhere } from "@/lib/sessi
 import { serializeTx, txInclude } from "@/lib/finance";
 import { currentMonth, isMonth, monthRange, shiftMonth } from "@/lib/dates";
 import { num, round2 } from "@/lib/money";
+import { ensureRecurring } from "@/lib/recurring";
 
 export const dynamic = "force-dynamic";
 
@@ -17,6 +18,7 @@ export async function GET(req: Request) {
     const m = q.get("month");
     const month = m && isMonth(m) ? m : shiftMonth(currentMonth(), 1);
     const { start, end } = monthRange(month);
+    await ensureRecurring(user, month);
 
     const [txs, rules] = await Promise.all([
       prisma.transaction.findMany({

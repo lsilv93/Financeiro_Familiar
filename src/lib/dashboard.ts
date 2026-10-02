@@ -3,6 +3,7 @@ import { type CurrentUser, type ScopeFilter, visibleWhere } from "./session";
 import { addDays, diffDays, fmtDay, monthOf, parseDay, shiftMonth, startOfWeek, today, type Period } from "./dates";
 import { num, round2 } from "./money";
 import { EXPENSE_CATEGORIES, INVESTMENT_KEY, TITHE_KEY } from "./categories";
+import { ensureRecurring } from "./recurring";
 
 type Range = { start: Date; end: Date }; // end exclusivo
 type Bucket = { key: string; label: string; start: Date; end: Date };
@@ -72,6 +73,8 @@ export async function dashboard(user: CurrentUser, opts: { period: Period; ref: 
   const { period, filter } = opts;
   const t0 = today();
   const ref = parseDay(opts.ref);
+  // Receitas/despesas fixas viram lançamentos dos meses seguintes automaticamente.
+  await ensureRecurring(user, period === "total" ? undefined : monthOf(addDays(rangeFor(period, ref).range.end, -1)));
   const base = visibleWhere(user, filter);
 
   // Para "total", o intervalo é do primeiro lançamento até o último (ou hoje).

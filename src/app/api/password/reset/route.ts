@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 
 const schema = z.object({
   token: z.string().min(20).max(200),
-  password: z.string().min(8, "A senha deve ter ao menos 8 caracteres").max(100),
+  password: z.string().min(8, "A senha deve ter ao menos 8 caracteres").max(72, "A senha deve ter no máximo 72 caracteres"),
 });
 
 /** Define a nova senha, desbloqueia a conta e invalida links e sessões anteriores. */
