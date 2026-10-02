@@ -106,6 +106,25 @@ export default function PainelPage() {
 
       {error && <ErrorBox message={error} />}
       {loading && !data && <Spinner className="my-16" />}
+      {data && !data.health.hasData && period !== "total" && (
+        <div className="card mb-5">
+          <SectionTitle>Primeiros passos</SectionTitle>
+          <p className="mb-4 text-[13px] leading-relaxed text-t3">Seu painel ainda está vazio. Em poucos minutos ele passa a mostrar saldo, gráficos e projeções:</p>
+          <ol className="grid gap-3 sm:grid-cols-2">
+            {[
+              ["1", "Lance sua receita", "Salário e outras entradas. Marque “Fixa” para repetir todo mês.", "/receitas/nova", "Lançar receita"],
+              ["2", "Lance suas despesas", "Contas, mercado e parcelas. Pode ser de qualquer data.", "/despesas/nova", "Lançar despesa"],
+              ["3", "Cadastre seus cartões", "Para escolher o cartão nas compras no crédito.", "/cartoes", "Cadastrar cartão"],
+              ["4", "Convide sua família", "Pelo WhatsApp. Cada um vê só o que é seu ou da família.", "/configuracoes", "Convidar"],
+            ].map(([n, t, d, href, cta]) => (
+              <li key={n} className="well flex items-start gap-3">
+                <span className="chip !h-9 !w-9 mono text-[13px] font-semibold text-lime">{n}</span>
+                <div className="min-w-0 flex-1"><div className="text-[14px] font-semibold text-fg">{t}</div><p className="mt-0.5 text-[12px] leading-relaxed text-t3">{d}</p><Link href={href} className="btn-secondary btn-xs mt-2">{cta}</Link></div>
+              </li>
+            ))}
+          </ol>
+        </div>
+      )}
       {data && (
         <div className={`space-y-5 transition-opacity ${loading ? "opacity-60" : ""}`}>
           {data.overdue.count > 0 && (

@@ -53,7 +53,7 @@ export default function ParcelasPage() {
                 <div className="mono mb-2 flex justify-between text-[11px] text-t3">
                   <span>{p.paidCount}/{p.installmentsCount} pagas · faltam {p.remainingCount}</span><span>{pct}%</span>
                 </div>
-                <div className="track" role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100}>
+                <div className="track" role="progressbar" aria-label={`Progresso de ${p.description}`} aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100}>
                   <div className="fill" style={{ width: `${pct}%` }} />
                 </div>
               </div>

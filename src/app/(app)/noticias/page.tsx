@@ -1,72 +1,95 @@
 "use client";
-import { useState } from "react";
 import { useApi } from "@/lib/client";
-import { MarketStrip } from "@/components/MarketStrip";
-import { Empty, ErrorBox, PageHeader, Spinner } from "@/components/ui";
+import { fmtIndicator, refDate, type Indicator } from "@/lib/indicators";
+import { Empty, ErrorBox, PageHeader, SectionTitle, Spinner } from "@/components/ui";
 
-type Item = { title: string; link: string; source: string; published: string | null; summary: string; category: string };
-type Res = { items: Item[]; sources: { name: string; ok: boolean }[]; counts: Record<string, number>; updatedAt: string };
+type Item = { title: string; link: string; source: string; published: string | null; summary: string };
+type News = { top: Record<"dolar" | "inflacao" | "investimentos" | "brasil", Item[]>; sources: { name: string; ok: boolean }[]; updatedAt: string | null; stale: boolean };
+type Market = { indicators: Indicator[]; updatedAt: string | null; stale: boolean };
 
-const CATS: [string, string][] = [["", "Todas"], ["dolar", "Dólar e câmbio"], ["inflacao", "Inflação e juros"], ["investimentos", "Investimentos"], ["brasil", "Economia Brasil"]];
-const BADGE: Record<string, string> = { dolar: "badge-gold", inflacao: "badge-danger", investimentos: "badge-lime", brasil: "" };
-const NAME: Record<string, string> = { dolar: "Dólar", inflacao: "Inflação", investimentos: "Investimentos", brasil: "Brasil" };
+const SECTIONS: [keyof News["top"], string][] = [["dolar", "Dólar e câmbio"], ["inflacao", "Inflação e juros"], ["investimentos", "Investimentos"], ["brasil", "Economia do Brasil"]];
+const GROUPS: [Indicator["group"], string][] = [["cambio", "Câmbio"], ["juros", "Juros e inflação"], ["bolsa", "Bolsa e investimentos"]];
 
 function ago(iso: string | null) {
   if (!iso) return "";
   const m = Math.round((Date.now() - new Date(iso).getTime()) / 60000);
-  if (m < 1) return "agora";
-  if (m < 60) return `há ${m} min`;
+  if (m < 60) return `há ${Math.max(1, m)} min`;
   if (m < 1440) return `há ${Math.round(m / 60)} h`;
-  return new Date(iso).toLocaleDateString("pt-BR");
+  return new Date(iso).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" });
 }
+const stamp = (iso: string | null) => (iso ? new Date(iso).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" }) : "—");
 
 export default function NoticiasPage() {
-  const [cat, setCat] = useState("");
-  const { data, error, loading, reload } = useApi<Res>(`/api/news${cat ? `?cat=${cat}` : ""}`);
-  const failed = data?.sources.filter((s) => !s.ok) ?? [];
+  const news = useApi<News>("/api/news");
+  const market = useApi<Market>("/api/market");
+  const total = news.data ? Object.values(news.data.top).reduce((a, l) => a + l.length, 0) : 0;
 
   return (
     <div>
-      <PageHeader title="Notícias" subtitle="Dólar, inflação, investimentos e economia do Brasil" actions={<button className="btn-secondary btn-xs" onClick={reload}>Atualizar</button>} />
-      <div className="mb-5"><MarketStrip /></div>
+      <PageHeader title="Notícias e indicadores" subtitle="O essencial do dia, atualizado uma vez por dia" />
+      {(news.error || market.error) && <ErrorBox message={(news.error || market.error)!} />}
 
-      <div className="mb-5 overflow-x-auto pb-1">
-        <div className="seg" role="tablist">
-          {CATS.map(([k, l]) => (
-            <button key={k} role="tab" aria-selected={cat === k} className="seg-btn whitespace-nowrap" onClick={() => setCat(k)}>
-              {l}{k && data?.counts[k] ? <span className="mono ml-1.5 text-[10px] opacity-70">{data.counts[k]}</span> : null}
-            </button>
-          ))}
-        </div>
-      </div>
+      <section className="mb-6">
+        <SectionTitle right={<span className="mono text-[10px] text-t4">Atualizado em {stamp(market.data?.updatedAt ?? null)}</span>}>Indicadores de hoje</SectionTitle>
+        {market.loading && !market.data ? <Spinner className="my-8" /> : !market.data?.indicators.length ? (
+          <Empty>Os indicadores não estão disponíveis agora. Tente novamente mais tarde.</Empty>
+        ) : (
+          <div className="grid gap-5 lg:grid-cols-3">
+            {GROUPS.map(([g, label]) => {
+              const list = market.data!.indicators.filter((i) => i.group === g);
+              if (!list.length) return null;
+              return (
+                <div key={g} className="card !p-[18px]">
+                  <div className="kicker mb-3">{label}</div>
+                  <ul className="space-y-2.5">
+                    {list.map((i) => (
+                      <li key={i.code} className="well flex items-center justify-between gap-3 !rounded-[16px] !px-4 !py-2.5">
+                        <div className="min-w-0"><div className="truncate text-[12px] text-t2">{i.name}</div>{i.date && g === "juros" && <div className="mono text-[10px] text-t4">ref. {refDate(i.date)}</div>}</div>
+                        <div className="text-right"><div className="mono text-[14px] font-semibold text-fg">{fmtIndicator(i)}</div>
+                          {i.pct !== null && <div className={`mono text-[10px] font-semibold ${i.pct >= 0 ? "text-lime" : "text-danger"}`}>{i.pct >= 0 ? "▲" : "▼"} {Math.abs(i.pct).toFixed(2).replace(".", ",")}%</div>}</div>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </section>
 
-      {error && <ErrorBox message={error} />}
-      {loading && !data && <Spinner className="my-16" />}
-      {data && (
-        <>
-          {data.items.length === 0 ? (
-            <Empty>Não foi possível carregar notícias agora. Tente novamente em alguns minutos.</Empty>
-          ) : (
-            <div className="stagger grid gap-5 md:grid-cols-2">
-              {data.items.map((n) => (
-                <a key={n.link} href={n.link} target="_blank" rel="noopener noreferrer" className="card card-link flex flex-col gap-3 !p-[18px]">
-                  <div className="flex items-center justify-between gap-2">
-                    <span className={`badge ${BADGE[n.category]}`}>{NAME[n.category]}</span>
-                    <span className="mono text-[10px] text-t4">{ago(n.published)}</span>
-                  </div>
-                  <h2 className="text-[15px] font-semibold leading-snug text-fg">{n.title}</h2>
-                  {n.summary && <p className="line-clamp-3 text-[12px] leading-relaxed text-t3">{n.summary}</p>}
-                  <span className="mt-auto text-[11px] font-semibold text-lime">{n.source} ↗</span>
-                </a>
-              ))}
-            </div>
-          )}
-          <p className="mt-6 text-center text-[11px] text-t4">
-            Fontes: {data.sources.filter((s) => s.ok).map((s) => s.name).join(", ") || "indisponíveis"}. As matérias abrem no site original.
-            {failed.length > 0 && ` Indisponíveis no momento: ${failed.map((f) => f.name).join(", ")}.`}
-          </p>
-        </>
-      )}
+      <section>
+        <SectionTitle>Principais notícias</SectionTitle>
+        {news.loading && !news.data ? <Spinner className="my-8" /> : total === 0 ? (
+          <Empty>Não foi possível carregar as notícias agora. Tente novamente mais tarde.</Empty>
+        ) : (
+          <div className="grid gap-5 md:grid-cols-2">
+            {SECTIONS.map(([k, label]) => {
+              const list = news.data!.top[k];
+              if (!list.length) return null;
+              return (
+                <div key={k} className="card !p-[18px]">
+                  <div className="kicker mb-1">{label}</div>
+                  <ul className="rows">
+                    {list.map((n) => (
+                      <li key={n.link} className="py-3">
+                        <a href={n.link} target="_blank" rel="noopener noreferrer" className="group block">
+                          <div className="text-[14px] font-semibold leading-snug text-fg group-hover:text-lime">{n.title}</div>
+                          {n.summary && <p className="mt-1 text-[12px] leading-relaxed text-t3">{n.summary}</p>}
+                          <div className="mono mt-1.5 text-[10px] text-t4">{n.source}{n.published ? ` · ${ago(n.published)}` : ""} ↗</div>
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              );
+            })}
+          </div>
+        )}
+        <p className="mt-6 text-center text-[11px] leading-relaxed text-t4">
+          Atualizado em {stamp(news.data?.updatedAt ?? null)}{news.data?.stale ? " (dados de um acesso anterior: as fontes não responderam hoje)" : ""} · a página se atualiza sozinha 1 vez por dia, no primeiro acesso.
+          {news.data?.sources.length ? ` Fontes: ${news.data.sources.filter((s) => s.ok).map((s) => s.name).join(", ") || "indisponíveis"}.` : ""}
+        </p>
+      </section>
     </div>
   );
 }

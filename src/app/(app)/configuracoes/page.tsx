@@ -86,11 +86,11 @@ export default function ConfigPage() {
           </div>
 
           {data.family.members.length === 1 && (
-            <form className="card space-y-5" onSubmit={(e) => { e.preventDefault(); run(() => api("/api/family/join", { method: "POST", body: { inviteCode: code } }), "Você entrou na nova família."); }}>
-              <SectionTitle>Entrar em outra família</SectionTitle>
+            <form className="card space-y-5" onSubmit={(e) => { e.preventDefault(); run(() => api("/api/family/join", { method: "POST", body: { inviteCode: code } }), "Pedido enviado! O usuário principal da outra família precisa aceitar."); }}>
+              <SectionTitle>Pedir para entrar em outra família</SectionTitle>
               <input className="input uppercase" placeholder="Código de convite" value={code} onChange={(e) => setCode(e.target.value)} required />
-              <p className="text-[11px] text-t4">Seus lançamentos, cartões e recorrências “familiares” serão migrados para a nova família.</p>
-              <button className="btn-secondary">Entrar</button>
+              <p className="text-[11px] text-t4">O usuário principal da outra família precisa aceitar. Ao ser aceito, seus dados são levados para a nova família.</p>
+              <button className="btn-secondary">Enviar pedido</button>
             </form>
           )}
           <p className="mono text-center text-[11px] text-t4">Reserva atual: {brl(data.user.emergencyReserve)} pessoal · {brl(data.family.emergencyReserve)} familiar</p>

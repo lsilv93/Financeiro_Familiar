@@ -93,12 +93,16 @@ export async function budgetCheck(
   const after = round2(projected - impact);
   const isReserveContribution = p.category === INVESTMENT_KEY && p.subcategory === RESERVE_SUB;
 
+  // Sem nenhuma receita no mês, não há orçamento para comparar: não assusta o usuário novo com o alerta.
+  const { start, end } = monthRange(month);
+  const hasIncome = (await prisma.transaction.count({ where: { AND: [visibleWhere(user, p.scope), { type: "INCOME", dueDate: { gte: start, lt: end } }] } })) > 0;
+
   let level: BudgetLevel = "OK";
-  if (!isReserveContribution) {
+  if (!isReserveContribution && hasIncome) {
     if (after < 0) level = "NEGATIVE";
     else if (reserve > 0 && after < reserve) level = "RESERVE";
   }
-  return { level, month, projectedBefore: projected, projectedAfter: after, impact, emergencyReserve: reserve };
+  return { level, month, projectedBefore: projected, projectedAfter: after, impact, emergencyReserve: reserve, hasIncome };
 }
 
 export function nextMonth(m: string) {

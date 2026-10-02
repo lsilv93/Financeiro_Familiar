@@ -40,13 +40,14 @@ export async function GET(req: Request) {
 
     const where: Prisma.TransactionWhereInput = { AND: filters };
     const page = Math.max(1, Number(q.get("page")) || 1);
-    const pageSize = Math.min(100, Math.max(1, Number(q.get("pageSize")) || 30));
+    const pageSize = Math.min(500, Math.max(1, Number(q.get("pageSize")) || 30));
+    const asc = q.get("sort") === "asc"; // ordem de planilha: vencimento crescente
 
     const [items, total, agg] = await Promise.all([
       prisma.transaction.findMany({
         where,
         include: txInclude,
-        orderBy: [{ dueDate: "desc" }, { createdAt: "desc" }],
+        orderBy: asc ? [{ dueDate: "asc" }, { createdAt: "asc" }] : [{ dueDate: "desc" }, { createdAt: "desc" }],
         skip: (page - 1) * pageSize,
         take: pageSize,
       }),

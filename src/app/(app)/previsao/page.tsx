@@ -41,10 +41,10 @@ export default function PrevisaoPage() {
       <div className="card mb-5">
         <SectionTitle>Próximos 12 meses</SectionTitle>
         {ov.loading && !ov.data ? <Spinner className="my-6" /> : (
-          <div className="scroll-x">
+          <div className="scroll-x" tabIndex={0} role="region" aria-label="Tabela dos próximos 12 meses">
             <table className="w-full min-w-[560px] text-[12px]">
               <thead>
-                <tr className="kicker text-left"><th className="pb-3 font-semibold">Mês</th><th className="pb-3 text-right font-semibold">Receitas</th><th className="pb-3 text-right font-semibold">Despesas</th><th className="pb-3 text-right font-semibold">Saldo</th><th className="w-[28%] pb-3 pl-4 font-semibold"> </th></tr>
+                <tr className="kicker text-left"><th className="pb-3 font-semibold">Mês</th><th className="pb-3 text-right font-semibold">Receitas</th><th className="pb-3 text-right font-semibold">Despesas</th><th className="pb-3 text-right font-semibold">Saldo</th><th className="w-[28%] pb-3 pl-4 font-semibold"><span className="sr-only">Comparação visual</span></th></tr>
               </thead>
               <tbody className="rows [&>tr]:border-t [&>tr]:border-[var(--groove)]">
                 {ov.data?.months.map((m) => (

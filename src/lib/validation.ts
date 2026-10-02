@@ -85,3 +85,30 @@ export const savingsSchema = z.object({
   scope: z.enum(["PERSONAL", "FAMILY"]).default("PERSONAL"),
   confirmed: z.boolean().optional(), // obrigatório para resgates
 });
+
+export const shoppingListSchema = z.object({
+  name: z.string().trim().max(60).optional().nullable().transform((v) => (v ? v.replace(/\s+/g, " ") : "Lista de compras")),
+});
+
+export const shoppingAddSchema = z.object({
+  name: z.string().trim().min(1, "Informe o item").max(80).transform((v) => v.replace(/\s+/g, " ")),
+  quantity: z.string().trim().max(30).optional().nullable().transform((v) => v || null),
+});
+
+export const shoppingItemEditSchema = z.object({
+  name: z.string().trim().min(1).max(80).optional(),
+  quantity: z.string().trim().max(30).nullable().optional(),
+});
+
+/** Finalizar compra: itens marcados + valor, forma de pagamento e categoria da despesa. */
+export const shoppingCheckoutSchema = z.object({
+  itemIds: z.array(z.string().min(5).max(40)).min(1, "Marque pelo menos um item").max(200),
+  amount: z.coerce.number().positive("Informe o valor total da compra").max(1_000_000),
+  paymentMethod: z.enum(["PIX", "CASH", "DEBIT", "CREDIT"]),
+  cardId: z.string().optional().nullable().transform((v) => v || null),
+  category: z.string().default("ALIMENTACAO"),
+  subcategory: z.string().max(80).optional().nullable().transform((v) => v || null),
+  scope: z.enum(["PERSONAL", "FAMILY"]).default("FAMILY"),
+  date: day.optional(),
+  note: z.string().trim().max(60).optional().nullable().transform((v) => v || null),
+});

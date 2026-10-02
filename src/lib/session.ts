@@ -10,6 +10,7 @@ export type CurrentUser = {
   email: string;
   familyId: string;
   emergencyReserve: number;
+  awaitingApproval: boolean;
 };
 
 export async function getCurrentUser(): Promise<CurrentUser | null> {
@@ -19,7 +20,7 @@ export async function getCurrentUser(): Promise<CurrentUser | null> {
   if (!u) return null;
   // Senha redefinida depois que esta sessão foi emitida -> sessão inválida.
   if (u.passwordChangedAt && (session.user.pwd ?? 0) < u.passwordChangedAt.getTime()) return null;
-  return { id: u.id, name: u.name, email: u.email, familyId: u.familyId, emergencyReserve: Number(u.emergencyReserve) };
+  return { id: u.id, name: u.name, email: u.email, familyId: u.familyId, emergencyReserve: Number(u.emergencyReserve), awaitingApproval: u.awaitingApproval };
 }
 
 export class HttpError extends Error {
@@ -28,9 +29,17 @@ export class HttpError extends Error {
   }
 }
 
-export async function requireUser(): Promise<CurrentUser> {
+/** Usuário logado, mesmo que ainda aguarde aprovação (usado só no status do pedido). */
+export async function requireUserAnyState(): Promise<CurrentUser> {
   const u = await getCurrentUser();
   if (!u) throw new HttpError(401, "Não autenticado");
+  return u;
+}
+
+/** Usuário logado e com acesso liberado. Quem entrou por código só passa depois de aprovado. */
+export async function requireUser(): Promise<CurrentUser> {
+  const u = await requireUserAnyState();
+  if (u.awaitingApproval) throw new HttpError(403, "Seu acesso está aguardando a aprovação do usuário principal da família.", { code: "PENDING" });
   return u;
 }
 

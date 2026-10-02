@@ -1,30 +1,24 @@
 "use client";
-import { brl, useApi } from "@/lib/client";
+import Link from "next/link";
+import { useApi } from "@/lib/client";
+import { fmtIndicator, type Indicator } from "@/lib/indicators";
 
-type M = {
-  quotes: { code: string; name: string; bid: number; pct: number | null }[];
-  rates: { code: string; name: string; value: number; date: string; unit: string }[];
-};
+const MAIN = ["USDBRL", "EURBRL", "SELIC", "IPCA12", "IBOV"];
 
-/** Faixa com dólar, euro, bitcoin, Selic e IPCA. Some sozinha se as fontes estiverem indisponíveis. */
+/** Faixa compacta com os principais valores do dia. Some sozinha se as fontes estiverem indisponíveis. */
 export function MarketStrip() {
-  const { data } = useApi<M>("/api/market");
-  if (!data || (!data.quotes.length && !data.rates.length)) return null;
-  const items = [
-    ...data.quotes.map((q) => ({ key: q.code, name: q.name, value: q.code === "BTCBRL" ? brl(q.bid).replace(",00", "") : brl(q.bid), delta: q.pct })),
-    ...data.rates.map((r) => ({ key: r.code, name: r.name, value: `${r.value.toFixed(2).replace(".", ",")}${r.unit === "%" ? "%" : "% a.a."}`, delta: null as number | null })),
-  ];
+  const { data } = useApi<{ indicators: Indicator[] }>("/api/market");
+  const items = MAIN.map((c) => data?.indicators.find((i) => i.code === c)).filter((x): x is Indicator => !!x);
+  if (!items.length) return null;
   return (
-    <div className="scroll-x -mx-1 flex gap-3 px-1 pb-2">
+    <Link href="/noticias" className="scroll-x -mx-1 flex gap-3 px-1 pb-2" aria-label="Indicadores do dia">
       {items.map((i) => (
-        <div key={i.key} className="card-sm flex min-w-[148px] flex-1 flex-col gap-1 !rounded-[20px] !p-3.5">
+        <div key={i.code} className="card-sm flex min-w-[140px] flex-1 flex-col gap-1 !rounded-[20px] !p-3.5">
           <span className="kicker">{i.name}</span>
-          <span className="mono text-[15px] font-semibold text-fg">{i.value}</span>
-          {i.delta !== null && (
-            <span className={`mono text-[11px] font-semibold ${i.delta >= 0 ? "text-lime" : "text-danger"}`}>{i.delta >= 0 ? "▲" : "▼"} {Math.abs(i.delta).toFixed(2).replace(".", ",")}%</span>
-          )}
+          <span className="mono text-[15px] font-semibold text-fg">{fmtIndicator(i)}</span>
+          {i.pct !== null && <span className={`mono text-[11px] font-semibold ${i.pct >= 0 ? "text-lime" : "text-danger"}`}>{i.pct >= 0 ? "▲" : "▼"} {Math.abs(i.pct).toFixed(2).replace(".", ",")}%</span>}
         </div>
       ))}
-    </div>
+    </Link>
   );
 }

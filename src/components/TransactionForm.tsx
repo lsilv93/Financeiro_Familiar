@@ -11,22 +11,34 @@ import { Icon } from "./Icon";
 type Check = { level: "OK" | "RESERVE" | "NEGATIVE"; projectedBefore: number; projectedAfter: number; impact: number; emergencyReserve: number };
 type Method = keyof typeof PAYMENT_METHODS;
 
+function shiftDay(d: string, n: number) {
+  const x = new Date(`${d}T00:00:00Z`);
+  x.setUTCDate(x.getUTCDate() + n);
+  return x.toISOString().slice(0, 10);
+}
+function monthName(d: string) {
+  const m = new Date(`${d.slice(0, 7)}-01T00:00:00Z`).toLocaleDateString("pt-BR", { month: "long", year: "numeric", timeZone: "UTC" });
+  return m.charAt(0).toUpperCase() + m.slice(1);
+}
+
 const seg = (active: boolean, tone = "brand") => `seg-btn ${active ? (tone === "red" ? "on-danger" : "on") : ""}`;
 
-export function TransactionForm() {
+export function TransactionForm({ fixedType }: { fixedType: "INCOME" | "EXPENSE" }) {
   const router = useRouter();
   const { data: cards } = useApi<Card[]>("/api/cards");
   const activeCards = useMemo(() => (cards ?? []).filter((c) => c.active), [cards]);
 
-  const [type, setType] = useState<"INCOME" | "EXPENSE">("EXPENSE");
+  const type = fixedType; // receita e despesa têm telas separadas (evita lançar no lugar errado)
   const [scope, setScope] = useState<"PERSONAL" | "FAMILY">("PERSONAL");
   const [description, setDescription] = useState("");
   const [amount, setAmount] = useState("");
-  const [category, setCategory] = useState("ALIMENTACAO");
+  const [category, setCategory] = useState(fixedType === "EXPENSE" ? "ALIMENTACAO" : "SALARIO");
   const [subcategory, setSubcategory] = useState("");
   const [date, setDate] = useState(todayStr());
   const [dueDate, setDueDate] = useState("");
-  const [status, setStatus] = useState<"PAID" | "PENDING">("PAID");
+  const [status, setStatusRaw] = useState<"PAID" | "PENDING">("PAID");
+  const [statusTouched, setStatusTouched] = useState(false);
+  const setStatus = (v: "PAID" | "PENDING") => { setStatusTouched(true); setStatusRaw(v); };
   const [method, setMethod] = useState<Method>("PIX");
   const [cardId, setCardId] = useState("");
   const [kind, setKind] = useState<"VARIABLE" | "FIXED" | "INSTALLMENT">("VARIABLE");
@@ -42,13 +54,12 @@ export function TransactionForm() {
   const value = Number(amount.replace(",", ".")) || 0;
   const nInst = isExpense && kind === "INSTALLMENT" ? installments : 1;
 
+  // Data futura => "a pagar/a receber"; hoje ou passada => já realizado (o usuário pode trocar).
   useEffect(() => {
-    setCategory(type === "EXPENSE" ? "ALIMENTACAO" : "SALARIO");
-    setSubcategory("");
-    if (type === "INCOME") { setKind((k) => (k === "INSTALLMENT" ? "VARIABLE" : k)); setStatus("PAID"); }
-  }, [type]);
+    if (!statusTouched && !isCredit) setStatusRaw(date > todayStr() ? "PENDING" : "PAID");
+  }, [date, statusTouched, isCredit]);
   useEffect(() => setSubcategory(""), [category]);
-  useEffect(() => { if (isCredit) setStatus("PENDING"); }, [isCredit]);
+  useEffect(() => { if (isCredit) setStatusRaw("PENDING"); }, [isCredit]);
   useEffect(() => { if (isCredit && !cardId && activeCards[0]) setCardId(activeCards[0].id); }, [isCredit, cardId, activeCards]);
 
   const payload = () => ({
@@ -66,7 +77,7 @@ export function TransactionForm() {
     setError(null);
     try {
       await api("/api/transactions", { method: "POST", body: payload() });
-      router.push("/lancamentos");
+      router.push(`${isExpense ? "/despesas" : "/receitas"}?mes=${date.slice(0, 7)}&salvo=1`);
       router.refresh();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Erro ao salvar");
@@ -104,9 +115,12 @@ export function TransactionForm() {
       <form onSubmit={submit} className="card space-y-6 !p-6">
         {error && <ErrorBox message={error} />}
 
-        <div className="seg w-full">
-          <button type="button" className={seg(isExpense, "red")} onClick={() => setType("EXPENSE")}>Despesa</button>
-          <button type="button" className={seg(!isExpense)} onClick={() => setType("INCOME")}>Receita</button>
+        <div className={`well flex items-center gap-3 ${isExpense ? "well-danger" : ""}`}>
+          <span className={`chip ${isExpense ? "text-danger" : "text-lime"}`}><Icon name={isExpense ? "down" : "up"} size={18} /></span>
+          <div>
+            <div className={`text-[15px] font-semibold ${isExpense ? "text-danger-light" : "text-lime"}`}>{isExpense ? "Nova despesa" : "Nova receita"}</div>
+            <div className="text-[11px] text-t3">{isExpense ? "Dinheiro que sai: contas, compras, parcelas." : "Dinheiro que entra: salário, extras, rendimentos."}</div>
+          </div>
         </div>
 
         <div>
@@ -146,6 +160,17 @@ export function TransactionForm() {
             <label className="label" htmlFor="date">{isCredit ? "Data da compra" : isExpense ? "Data" : "Data do recebimento"}</label>
             <input id="date" type="date" className="input mono" required value={date} onChange={(e) => setDate(e.target.value)} />
           </div>
+        </div>
+        <div className="-mt-3 space-y-2">
+          <div className="flex flex-wrap gap-2">
+            {[["Hoje", 0], ["Ontem", -1], ["Amanhã", 1]].map(([l, d]) => (
+              <button key={l as string} type="button" className="btn-secondary btn-xs" onClick={() => setDate(shiftDay(todayStr(), d as number))}>{l}</button>
+            ))}
+          </div>
+          <p className="text-[11px] leading-relaxed text-t4">
+            Pode ser qualquer dia, mês ou ano: passado (se esqueceu de lançar) ou futuro.
+            {date && <> Entra em <b className="text-t2">{monthName(date)}</b>.</>}
+          </p>
         </div>
 
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">

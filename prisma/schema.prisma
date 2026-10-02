@@ -14,6 +14,23 @@ enum FamilyRole {
   CHILD
 }
 
+enum JoinStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum ShoppingStatus {
+  PENDING // ainda precisa comprar
+  IN_CART // alguém já pegou / está comprando
+  BOUGHT // comprado (baixa na lista)
+}
+
+enum ShoppingListStatus {
+  OPEN // ainda há itens a comprar
+  CLOSED // 100% comprada (encerrada)
+}
+
 enum SavingsKind {
   DEPOSIT // guardei
   WITHDRAWAL // resgatei
@@ -46,9 +63,13 @@ model Family {
   name             String
   inviteCode       String   @unique
   emergencyReserve Decimal  @default(0) @db.Decimal(12, 2)
+  ownerId          String? // usuário principal (quem criou): aprova novos membros
   createdAt        DateTime @default(now())
 
   members          User[]
+  joinRequests     JoinRequest[]
+  shoppingItems    ShoppingItem[]
+  shoppingLists    ShoppingList[]
   cards            CreditCard[]
   transactions     Transaction[]
   installmentPlans InstallmentPlan[]
@@ -66,6 +87,7 @@ model User {
   failedLogins     Int         @default(0) // tentativas de login incorretas seguidas
   lockedAt         DateTime? // conta bloqueada (só a redefinição de senha desbloqueia)
   passwordChangedAt DateTime? // sessões emitidas antes disso deixam de valer
+  awaitingApproval Boolean     @default(false) // entrou por código e ainda não foi aprovado pelo usuário principal
   createdAt        DateTime @default(now())
 
   familyId String
@@ -77,6 +99,8 @@ model User {
   recurringRules   RecurringRule[]
   savings          SavingsEntry[]
   resetTokens      PasswordResetToken[]
+  joinRequests     JoinRequest[]
+  notifications    Notification[]
 
   @@index([familyId])
 }
@@ -141,6 +165,7 @@ model RecurringRule {
   dayOfMonth    Int
   startMonth    String // "YYYY-MM": primeiro mês em que vale
   endMonth      String? // "YYYY-MM": último mês (vazio = sem fim)
+  skipMonths    String[] @default([]) // meses excluídos individualmente (não serem regerados)
   scope         Scope
   active        Boolean        @default(true)
   createdAt     DateTime       @default(now())
@@ -234,4 +259,85 @@ model AttemptLimit {
   count        Int       @default(0)
   windowStart  DateTime  @default(now())
   blockedUntil DateTime?
+}
+
+// Pedido para entrar em uma família (aprovado pelo usuário principal).
+model JoinRequest {
+  id          String     @id @default(cuid())
+  status      JoinStatus @default(PENDING)
+  createdAt   DateTime   @default(now())
+  decidedAt   DateTime?
+  decidedById String?
+
+  userId   String
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  familyId String
+  family   Family @relation(fields: [familyId], references: [id], onDelete: Cascade)
+
+  @@index([familyId, status])
+  @@index([userId, status])
+}
+
+model Notification {
+  id        String    @id @default(cuid())
+  type      String // JOIN_REQUEST | JOIN_APPROVED | JOIN_REJECTED | SHOPPING
+  title     String
+  body      String
+  requestId String?
+  readAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, readAt])
+}
+
+// Lista de compras compartilhada pela família.
+model ShoppingItem {
+  id        String         @id @default(cuid())
+  name      String
+  quantity  String?
+  status    ShoppingStatus @default(PENDING)
+  month     String // "YYYY-MM" em que foi adicionado
+  cartById  String? // quem pegou o item (para os outros não comprarem igual)
+  cartAt    DateTime?
+  boughtAt  DateTime?
+  boughtById String?
+  transactionId String? // despesa gerada na conclusão da compra
+  createdById String
+  createdAt DateTime       @default(now())
+
+  familyId String
+  family   Family @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  listId   String
+  list     ShoppingList @relation(fields: [listId], references: [id], onDelete: Cascade)
+
+  @@index([familyId, status])
+  @@index([familyId, month])
+  @@index([listId])
+}
+
+// Lista de compras: cada lista tem um código único e fica pendente até todos os itens serem comprados.
+model ShoppingList {
+  id          String             @id @default(cuid())
+  code        String             @unique
+  name        String
+  status      ShoppingListStatus @default(OPEN)
+  createdById String
+  createdAt   DateTime           @default(now())
+  closedAt    DateTime?
+
+  familyId String
+  family   Family         @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  items    ShoppingItem[]
+
+  @@index([familyId, status])
+}
+
+// Cache diário de dados externos (notícias e cotações).
+model CacheEntry {
+  key       String   @id
+  value     Json
+  fetchedAt DateTime @default(now())
 }

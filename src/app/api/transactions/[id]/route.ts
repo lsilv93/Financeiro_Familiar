@@ -2,7 +2,7 @@ import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { HttpError, handle, requireUser, visibleWhere } from "@/lib/session";
 import { getUsableCard, resolveDueDate, serializeTx, txInclude } from "@/lib/finance";
-import { parseDay } from "@/lib/dates";
+import { parseDay, shiftMonth } from "@/lib/dates";
 import { isValidCategory } from "@/lib/categories";
 
 export const dynamic = "force-dynamic";
@@ -65,14 +65,35 @@ export async function PUT(req: Request, ctx: { params: Promise<{ id: string }> }
   });
 }
 
+/**
+ * Exclui um lançamento.
+ *  - parcelado: `?plan=true` apaga todas as parcelas; senão só esta parcela.
+ *  - fixo (gerado por regra): `?mode=one` só este mês (não é regerado), `future` este e os próximos, `all` todos os meses.
+ */
 export async function DELETE(req: Request, ctx: { params: Promise<{ id: string }> }) {
   return handle(async () => {
     const { id } = await ctx.params;
     const { tx } = await findTx(id);
-    const wholePlan = new URL(req.url).searchParams.get("plan") === "true";
-    if (wholePlan && tx.planId) {
+    const q = new URL(req.url).searchParams;
+    if (q.get("plan") === "true" && tx.planId) {
       await prisma.installmentPlan.delete({ where: { id: tx.planId } }); // cascade nas parcelas
       return { deleted: "plan" };
+    }
+    if (tx.ruleId && tx.recurringMonth) {
+      const rule = await prisma.recurringRule.findUnique({ where: { id: tx.ruleId } });
+      const mode = q.get("mode") ?? "one";
+      if (rule && mode === "all") {
+        await prisma.transaction.deleteMany({ where: { ruleId: rule.id } });
+        await prisma.recurringRule.delete({ where: { id: rule.id } });
+        return { deleted: "rule" };
+      }
+      if (rule && mode === "future") {
+        await prisma.transaction.deleteMany({ where: { ruleId: rule.id, recurringMonth: { gte: tx.recurringMonth } } });
+        if (tx.recurringMonth <= rule.startMonth) await prisma.recurringRule.delete({ where: { id: rule.id } });
+        else await prisma.recurringRule.update({ where: { id: rule.id }, data: { endMonth: shiftMonth(tx.recurringMonth, -1) } });
+        return { deleted: "future" };
+      }
+      if (rule) await prisma.recurringRule.update({ where: { id: rule.id }, data: { skipMonths: { push: tx.recurringMonth } } });
     }
     await prisma.transaction.delete({ where: { id } });
     return { deleted: "transaction" };

@@ -70,7 +70,7 @@ export async function ensureRecurring(user: CurrentUser, through?: string): Prom
   for (const r of rules) {
     const from = r.startMonth > now ? r.startMonth : now;
     const to = r.endMonth && r.endMonth < last ? r.endMonth : last;
-    for (const m of monthsBetween(from, to)) if (!have.has(`${r.id}|${m}`)) rows.push(rowFor(r, m));
+    for (const m of monthsBetween(from, to)) if (!have.has(`${r.id}|${m}`) && !r.skipMonths.includes(m)) rows.push(rowFor(r, m));
   }
   if (!rows.length) return 0;
   const res = await prisma.transaction.createMany({ data: rows, skipDuplicates: true });
@@ -80,7 +80,7 @@ export async function ensureRecurring(user: CurrentUser, through?: string): Prom
 /** Gera explicitamente os meses informados (usado pelo botão manual, inclusive meses passados). */
 export async function generateMonths(user: CurrentUser, months: string[]): Promise<{ generated: number; skipped: number }> {
   const rules = await prisma.recurringRule.findMany({ where: { AND: [{ active: true }, visibleRulesWhere(user)] }, include: { card: true } });
-  const rows = rules.flatMap((r) => months.filter((m) => m >= r.startMonth && (!r.endMonth || m <= r.endMonth)).map((m) => rowFor(r, m)));
+  const rows = rules.flatMap((r) => months.filter((m) => m >= r.startMonth && (!r.endMonth || m <= r.endMonth) && !r.skipMonths.includes(m)).map((m) => rowFor(r, m)));
   const res = await prisma.transaction.createMany({ data: rows, skipDuplicates: true });
   return { generated: res.count, skipped: rows.length - res.count };
 }

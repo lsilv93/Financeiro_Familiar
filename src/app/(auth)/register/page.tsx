@@ -101,7 +101,7 @@ function RegisterForm() {
           <input id="invite" className="input mono uppercase" placeholder="Ex.: A1B2C3D4" value={f.inviteCode} onChange={(e) => { setCodeMsg(null); setFamilyFound(null); set("inviteCode")(e); }} onBlur={() => f.inviteCode && checkCode(f.inviteCode)} />
           {familyFound !== null && <p className="mt-2 text-[12px] font-semibold text-lime">Família encontrada: {familyFound}</p>}
           {codeMsg && <p className="mt-2 text-[12px] text-danger">{codeMsg}</p>}
-          <p className="mt-2 text-[11px] text-t4">Por segurança, após 3 códigos inválidos o acesso por convite é bloqueado por 30 minutos.</p>
+          <p className="mt-2 text-[11px] text-t4">O usuário principal da família precisa aprovar o seu acesso. Por segurança, após 3 códigos inválidos o acesso por convite é bloqueado por 30 minutos.</p>
         </div>
       )}
 
